@@ -1,0 +1,61 @@
+#follow-div {
+    text-align: left;
+    
+}
+
+#title-div {
+
+}
+
+#others-div {
+
+}
+
+.follow-link {
+    font-style: italic;
+    font-size: 20px;
+    margin: 20px 10px;
+}
+
+#main-div {
+    display: flex;
+    justify-content: space-around;
+}
+
+.discord {
+    color: white;
+    background-color: purple;
+}
+
+#money { 
+    display: inline;
+    width: 100px;
+    height: 30px;
+    text-align: center;
+}
+
+#donate-test {
+    display: block;
+    margin: 5px auto;
+    width: 15%;
+}
+
+#donate-div {
+    align-items: left;
+}
+
+#donate-error {
+    color: red;
+}
+
+#donate-btn {
+    height: 35px;
+    width: 50%;
+    margin: 10px auto;
+    text-align: center;
+    justify-content: center;
+}
+
+body {
+    background-color: rgb(220 220 220)
+}
