@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head><title><%= page.title %></title></head>
+<body>
+  <h1><%= page.title %></h1>
+  <p><%= page.content %></p>
+  <form id="new-image-form" action="/upload-image" method='POST' enctype="multipart/form-data">
+    <input type="hidden" name="slug" value="<%= page.slug %>">
+    <input type="file" name="image" id="file-input" accept="image/*" required>
+    <button id="upload-btn" type="submit" style="display: none">Upload Image</button>
+  </form>
+  <img id="preview" src="<%= page.profile ? page.profile : '/images/launch3.jpg' %>" width="250px" alt="Preview Image">
+  <a href="/">← Back to main page</a>
+
+
+  <script>
+    const uploadBtn = document.getElementById('upload-btn');
+    const fileInput = document.getElementById('file-input');
+    const previewImg = document.getElementById('preview');
+
+    // uploadBtn.addEventListener('click', () => {
+    //   fileInput.click();
+    // });
+    
+    fileInput.addEventListener('change', () => {
+    //   const file = fileInput.files[0];
+    //   if (file) {
+    //     const reader = new FileReader();
+    //     reader.onload = e => {
+    //       previewImg.src = e.target.result;
+    //     };
+    //     reader.readAsDataURL(file);
+    //   }
+    uploadBtn.click()
+    });
+  </script>
+</body>
+</html>
