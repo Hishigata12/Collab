@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+<header> 
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+    <%- include('header'); -%>
+</header>
+
+
+
+<h1>Dashboard for <%= username %></h1>
+<h1> Welcome <%= username  %></h1>
+<form action="/logout" method="POST">
+    <button type="submit">Logout</button>
+</form>
+</html>

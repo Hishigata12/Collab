@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Join Our Science Hub</title>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/signup.css">
+    <!-- Optional: Font Awesome icons -->
+  <script src="https://kit.fontawesome.com/a2e00f4c52.js" crossorigin="anonymous"></script>
+  <%- include('header'); -%>
+</head>
+<body>
+  <div class="signup-box">
+    <div class="sci-icon">
+      <i class="fas fa-atom"></i>
+    </div>
+    <h2>Login to the collaborative world</h2>
+      <form action="/login" method="POST">
+      <input type ="text" name="identifier" required placeholder="Username or Email">
+      <div class="password-container">
+      <input 
+        id="password"
+        name="password"
+        type="password"
+        placeholder="Password"
+        required
+      >
+      <button type="button" id="togglePassword">👁️</button>
+      </div>
+      <button type="submit">Login</button>
+    </form>
+  </div>
+  <script>
+      document.getElementById("togglePassword").addEventListener("click", function () {
+      const pwInput = document.getElementById("password");
+      const type = pwInput.getAttribute("type") === "password" ? "text" : "password";
+      pwInput.setAttribute("type", type);
+      this.textContent = type === "password" ? "👁️" : "🙈";
+    });
+  </script>
+</body>
+</html>

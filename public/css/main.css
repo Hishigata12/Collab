@@ -1,61 +1,126 @@
-#follow-div {
-    text-align: left;
+
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      background: #f4f4f4;
+    }
+
+    header {
+      background: #1a1a1a;
+      color: white;
+      padding: 1em;
+    }
+
+    .banner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .dropdown {
+      position: relative;
+      display: inline-block;
+      margin-right: 1em;
+    }
+
+    .dropbtn {
+      background-color: #333;
+      color: white;
+      padding: 10px;
+      font-size: 14px;
+      border: none;
+      cursor: pointer;
+    }
+
+    .dropdown-content {
+      display: none;
+      position: absolute;
+      background-color: #444;
+      min-width: 160px;
+      z-index: 1;
+    }
+
+    .dropdown-content a {
+      color: white;
+      padding: 10px 16px;
+      text-decoration: none;
+      display: block;
+    }
+
+    .dropdown:hover .dropdown-content {
+      display: block;
+    }
+
+    .main-container {
+      display: flex;
+      justify-content: space-between;
+      padding: 2em;
+      flex-wrap: wrap;
+    }
     
-}
+    .auth-box {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
 
-#title-div {
+    .media-box {
+      flex: 1;
+      min-width: 300px;
+      margin: 1em;
+      background: white;
+      padding: 1.5em;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
 
-}
+    .auth-box form {
+      display: flex;
+      flex-direction: row;
+      padding: 10px;
+    }
 
-#others-div {
+    .auth-box input {
+      border-radius: 4px;
+      flex-direction: column;
+      /* margin-bottom: 10px; */
+      padding: 10px;
+      margin: 0 8px;
+      font-size: 13px;
+      height: 12px;
+      width: 150px;
+    }
+    #login-box {
+        display: flex;
+        flex-direction: row;
+        padding: 10px;
+    }
+    .auth-box button {
+      border-radius: 6px;
+      padding: 10px;
+      /* width: 40px;
+      height: 20px; */
+      margin: 10 0px;
+      background: #0066cc;
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
 
-}
+    .search-bar {
+      text-align: center;
+      margin: 20px 0;
+    }
 
-.follow-link {
-    font-style: italic;
-    font-size: 20px;
-    margin: 20px 10px;
-}
+    .search-bar input {
+      width: 60%;
+      padding: 10px;
+      font-size: 16px;
+    }
 
-#main-div {
-    display: flex;
-    justify-content: space-around;
-}
-
-.discord {
-    color: white;
-    background-color: purple;
-}
-
-#money { 
-    display: inline;
-    width: 100px;
-    height: 30px;
-    text-align: center;
-}
-
-#donate-test {
-    display: block;
-    margin: 5px auto;
-    width: 15%;
-}
-
-#donate-div {
-    align-items: left;
-}
-
-#donate-error {
-    color: red;
-}
-
-#donate-btn {
-    height: 35px;
-    width: 50%;
-    margin: 10px auto;
-    text-align: center;
-    justify-content: center;
-}
-
-body {
-    background-color: rgb(220 220 220)
-}
+    iframe, img {
+      width: 100%;
+      border: none;
+      border-radius: 10px;
+      margin-top: 10px;
+    }

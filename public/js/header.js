@@ -1,5 +1,5 @@
 songBtn = document.getElementById('songs-btn')
-appBtn = document.getElementById('apps-btn')
+dashBtn = document.getElementById('dash-btn')
 newsBtn = document.getElementById('news-btn')
 homeBtn = document.querySelector('#home-btn')
 jazzJamsBtn = document.querySelector('#jazz-jams-btn')
@@ -20,8 +20,8 @@ homeBtn.addEventListener('click', function() {
 songBtn.addEventListener('click', function() {
     window.location.href = 'songs'
 })
-appBtn.addEventListener('click', function() {
-    window.location.href = 'apps'
+dashBtn.addEventListener('click', function() {
+    window.location.href = 'dashboard'
 })
 newsBtn.addEventListener('click', function() {
     window.location.href = 'news'
