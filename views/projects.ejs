@@ -1,0 +1,43 @@
+<!-- views/pdf-page.ejs -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title><%= pdf.title %></title>
+  <link rel="stylesheet" href="/styles/projects.css" />
+  <%- include('header'); -%>
+</head>
+<body>
+  <div class="container">
+    <main class="main-content">
+      <div class="pdf-viewer">
+        <embed src="/pdfs/<%= pdf.filename %>" type="application/pdf" width="100%" height="600px" />
+      </div>
+      <h3>Uploaded by <%= pdf.uploaded_by %></h3>
+      <section class="comments">
+        <h2>Comments</h2>
+        <form id="comment-form" method="POST" action="/comment">
+          <input type="hidden" name="pdfId" value="<%= pdf.id %>" />
+          <textarea name="comment" placeholder="Leave a comment..." required></textarea>
+          <button type="submit">Post</button>
+        </form>
+        <ul class="comment-list">
+          <% comments.forEach(comment => { %>
+            <li><strong><%= comment.user %>:</strong> <%= comment.text %></li>
+          <% }) %>
+        </ul>
+      </section>
+    </main>
+    <aside class="sidebar">
+      <h3>Related PDFs</h3>
+      <ul class="related-list">
+        <% related.forEach(r => { %>
+          <li><a href="/pdf/<%= r.slug %>"><%= r.title %></a></li>
+        <% }) %>
+      </ul>
+    </aside>
+  </div>
+  <script src="/scripts/projects.js"></script>
+</body>
+</html>

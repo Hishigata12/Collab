@@ -11,6 +11,19 @@
 
 <h1>Dashboard for <%= username %></h1>
 <h1> Welcome <%= username  %></h1>
+<h2>Upload PDF</h2>
+<form action="/upload-pdf" method="POST" enctype="multipart/form-data">
+  <input type="text" name="title" placeholder="Title" required><br>
+  <input type="text" name="tags" placeholder="Comma-separated tags"><br>
+  <input type="file" name="pdf" accept="application/pdf" required><br>
+  <button type="submit">Upload</button>
+</form>
+
+<ul class="upload-list">
+    <% pdf.forEach(p => { %>
+        <li><a href="/pdf/<%= p.slug %>"><%= p.title %></a></li>
+    <% }) %>
+</ul>
 <form action="/logout" method="POST">
     <button type="submit">Logout</button>
 </form>

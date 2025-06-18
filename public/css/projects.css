@@ -1,0 +1,79 @@
+/* public/styles/pdf-page.css */
+body {
+  font-family: Arial, sans-serif;
+  margin: 0;
+  padding: 0;
+  background: #f8f9fa;
+}
+
+.container {
+  display: flex;
+  padding: 20px;
+  max-width: 1200px;
+  margin: auto;
+}
+
+.main-content {
+  flex: 3;
+  margin-right: 20px;
+}
+
+.pdf-viewer {
+  border: 1px solid #ccc;
+  margin-bottom: 20px;
+  background: white;
+}
+
+.comments {
+  background: #fff;
+  padding: 10px;
+  border-radius: 5px;
+}
+
+.comments h2 {
+  margin-top: 0;
+}
+
+#comment-form textarea {
+  width: 100%;
+  height: 60px;
+  margin-bottom: 10px;
+}
+
+#comment-form button {
+  background-color: #007bff;
+  color: white;
+  border: none;
+  padding: 8px 12px;
+  cursor: pointer;
+}
+
+.comment-list {
+  list-style: none;
+  padding: 0;
+}
+
+.comment-list li {
+  margin-bottom: 10px;
+}
+
+.sidebar {
+  flex: 1;
+  background: #fff;
+  padding: 10px;
+  border-radius: 5px;
+}
+
+.related-list {
+  list-style: none;
+  padding: 0;
+}
+
+.related-list li {
+  margin-bottom: 8px;
+}
+
+.related-list a {
+  text-decoration: none;
+  color: #007bff;
+}

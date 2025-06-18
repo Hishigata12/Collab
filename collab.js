@@ -14,6 +14,7 @@ const sqlite3 = require('sqlite3').verbose()
 const crypto = require('crypto')
 const nodemailer = require('nodemailer')
 const jwt = require('jsonwebtoken')
+const slugify = require('slugify')
 // const { spawn } = require('child_process');
 // const { exec } = require('child_process')
 // const {parse} = require('csv-parse');
@@ -44,6 +45,17 @@ jwtSecret = process.env.secretKey
 BASE_URL = process.env.BASE_URL
 
 let db = new sqlite3.Database('./users.db');
+// Create users table if it doesn't exist
+db.serialize(() => {
+  db.run(`CREATE TABLE IF NOT EXISTS users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT UNIQUE,
+    password TEXT,
+    email TEXT UNIQUE, 
+    verified INTEGER DEFAULT 0
+  )`);
+});
+  
 
 const transporter = nodemailer.createTransport({
   service: 'gmail', // or use SMTP for better control
@@ -60,18 +72,6 @@ if (fs.existsSync('pages.json')) {
   pages = JSON.parse(fs.readFileSync('pages.json'));
 }
 
-// Create users table if it doesn't exist
-db.serialize(() => {
-  db.run(`CREATE TABLE IF NOT EXISTS users (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    username TEXT UNIQUE,
-    password TEXT,
-    email TEXT UNIQUE, 
-    verified INTEGER DEFAULT 0
-  )`);
-});
-  
-
 // Bcrypt for Routes and Authentication
 // const users = [];
 
@@ -80,7 +80,8 @@ app.get('/register', (req, res) => {
 });
 
 app.get('/verify/:token', (req, res) => {
-     const token = req.params;
+     const { token } = req.params;
+     console.log(token)
     try {
         const decoded = jwt.verify(token, process.env.secretKey)
         console.log(decoded)
@@ -95,11 +96,56 @@ app.get('/verify/:token', (req, res) => {
   }
 });
 
+app.post('/reverify', (req, res) => {
+    const { email } = req.body
+    db.get('SELECT id FROM users WHERE email = ?', [email], (err, row) => {
+        if (err) {
+            console.error('Databaes error:', err.message)
+            return;
+        }
+        if (row) {
+            console.log('User ID:', row.id)
+            const userId = row.id
+            const token = jwt.sign({ id: userId }, process.env.secretKey, { expiresIn: '1h'})
+            const verifyLink = `${BASE_URL}/verify/${token}`  
+            console.log(token)  
+            
+            
+            const mailOptions = {
+                from: "Collab",
+                to: email,
+                subject: 'Verify your email',
+                html: `<p>Click to verify your account:</p>
+                Click <a href="${verifyLink}">here</a> to verify your email.`
+        };
+
+        transporter.sendMail(mailOptions, (error, info) => {
+        if (error) {
+            console.error('Email failed:', error);
+            res.send('Failed to send email.')
+        } else {
+            console.log('Verification email sent:', info.response);
+            res.send(`
+                <html>
+                    <head>
+                    <meta http-equiv="refresh" content="4;url=/" />
+                    </head>
+                    <body>
+                    <h2>Verification Email Sent Successfully - Link expires in 1 hour! Redirecting in 5 seconds...</h2>
+                    </body>
+                </html>
+                `);
+        }
+    });
+
+        } else console.log('No user found with this ID')
+    })
+})
 
 app.post('/register', async (req, res) => {
     const { username, password, email } = req.body;
     console.log(username + ' ' + email)
-    const verificationToken = crypto.randomBytes(32).toString('hex');
+    // const verificationToken = crypto.randomBytes(32).toString('hex');
     if (!isStrongPassword(password)) {
         return res.send('Password must be at least 8 characters and include lowercase, uppercase and numbers')
     }
@@ -125,7 +171,16 @@ app.post('/register', async (req, res) => {
             res.send('Failed to send email.')
         } else {
             console.log('Verification email sent:', info.response);
-            res.render('message', { message: 'Verification email sent!' });
+             res.send(`
+                <html>
+                    <head>
+                    <meta http-equiv="refresh" content="4;url=/" />
+                    </head>
+                    <body>
+                    <h2>Verification Email Sent Successfully - Link expires in 1 hour! Redirecting in 5 seconds...</h2>
+                    </body>
+                </html>
+                `);
         }
     });
 })
@@ -147,7 +202,7 @@ app.post('/login', async (req, res) => {
       if (!user || !(await bcrypt.compare(password, user.password))) {
         return res.send('Invalid credentials');
       }
-      if (!user.is_verified) return res.send('Please verify your email before logging in.');
+      if (!user.verified) return res.send('Please verify your email before logging in.');
     req.session.user = { username: user.username }
     res.redirect('/dashboard');
   });
@@ -171,9 +226,24 @@ function requireAuth(req, res, next) {
         res.redirect('/login')
     }
 }
-app.get('/dashboard', requireAuth, (req, res) => {
+app.get('/dashboard', requireAuth, async (req, res) => {
     const username = req.session.user.username
-    res.render('dashboard', { username })
+    // console.log(username)
+    dbPdf.all(`
+        SELECT * FROM pdfs WHERE uploaded_by = ?`, [username], (err, pdf) => {
+            if (err || !pdf) {
+                console.log('choke')
+                pdf = {
+                    title: '',
+                    filename: '',
+                    uploaded_at: '',
+                    uploaded_by: ''
+                }
+                res.send('no PDF found')
+            }
+            // console.log(pdf)
+        res.render('dashboard', { username, pdf })
+    })
 })
 
 // Logging out
@@ -204,14 +274,14 @@ app.get('/pages/:slug', (req, res) => { // is used to handle any calls to /pages
 });
 
 // Storing Images
-const storage = multer.diskStorage({
+const imageStorage = multer.diskStorage({
     destination: './public/images',
     filename: (req, file, cb) => {
         cb(null, Date.now() + path.extname(file.originalname))
     }
 })
 
-const upload  = multer({ storage })
+const upload  = multer({ imageStorage })
 
 app.post('/upload-image', upload.single('image'), (req, res) => {
     const imageUrl = `/images/${req.file.filename}`
@@ -242,7 +312,106 @@ function isStrongPassword(pw) {
          /\d/.test(pw);
 }
 
+/////////// HANDLING PDF DISPLAY PAGES \\\\\\\\\\\\
+app.get('/pdf/:slug', (req, res) => {
+  const slug = req.params.slug;
+  let comments = [
+    {
+    user: "black boy",
+    text: "I like icecream"
+  },
+  {
+    user: "white girl",
+    text: "I like whiteclaws"
+  }
+  ]
+     dbPdf.get('SELECT * FROM pdfs WHERE slug = ?', [slug], (err, pdf) => {
+    if (err || !pdf) return res.status(404).send('PDF not found');
+    dbPdf.all('SELECT * FROM pdfs WHERE slug != ? LIMIT 10', [slug], (err2, related) => {
+        // console.log(related)
+      res.render('projects', { pdf, related, comments });
+    });
+  });
+//   const pdf = getPdfBySlug(slug); // custom function
+//   const comments = getCommentsForPdf(pdf.id);
+//   const relatedPdfs = getRelatedPdfs(pdf.id);
 
+//   res.render('projects', {
+//     pdfTitle: pdf.title,
+//     pdfFile: pdf.filename,
+//     pdfId: pdf.id,
+//     pdfUser: pdf.uploaded_by
+    // comments,
+    // relatedPdfs
+//   });
+});
+
+// Multer setup
+const pdfStorage = multer.diskStorage({
+  destination: './public/pdfs',
+  filename: (req, file, cb) => {
+    const unique = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, unique + path.extname(file.originalname));
+  }
+});
+
+const uploadPdf = multer({ pdfStorage });
+
+// Database
+const dbPdf = new sqlite3.Database('./db.sqlite')
+// Create users table if it doesn't exist
+dbPdf.serialize(() => {
+  dbPdf.run(`CREATE TABLE IF NOT EXISTS pdfs (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    title TEXT NOT NULL,
+    slug TEXT UNIQUE NOT NULL,
+    filename TEXT NOT NULL,
+    uploaded_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    uploaded_by TEXT NOT NULL
+  )`);
+  dbPdf.run(`CREATE TABLE IF NOT EXISTS comments (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    pdf_id INTEGER NOT NULL,
+    user TEXT NOT NULL,
+    text TEXT NOT NULL,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (pdf_id) REFERENCES pdfs(id)
+    )`);
+  dbPdf.run(`CREATE TABLE IF NOT EXISTS tags (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT UNIQUE)`)
+  dbPdf.run(`CREATE TABLE IF NOT EXISTS  pdf_tags (
+    pdf_id INTEGER,
+    tag_id INTEGER,
+    PRIMARY KEY (pdf_id, tag_id),
+    FOREIGN KEY (pdf_id) REFERENCES pdfs(id),
+    FOREIGN KEY (tag_id) REFERENCES tags(id)
+    )`)
+});
+
+
+// Route handling
+// Route: Upload PDF
+app.post('/upload-pdf', requireAuth, uploadPdf.single('pdf'), (req, res) => {
+  const { title } = req.body;
+  const slug = slugify(title, { lower: true, strict: true });
+  const filename = req.file.originalname;
+//   console.log(title)
+//   console.log(filename)
+//   console.log(req.session.user.username)
+
+  dbPdf.run(
+    'INSERT INTO pdfs (title, slug, filename, uploaded_by) VALUES (?, ?, ?, ?)',
+    [title, slug, filename, req.session.user.username],
+    function (err) {
+      if (err) {
+        console.error(err);
+        return res.send('Error uploading PDF.');
+      }
+      res.redirect(`/pdf/${slug}`);
+    }
+  );
+});
 
 
 
@@ -288,10 +457,6 @@ app.post('/signup', (req, res) => {
 
   res.redirect('/');
 });
-
-
-
-
 
 
 // // environment variable
