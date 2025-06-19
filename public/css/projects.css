@@ -1,9 +1,10 @@
 /* public/styles/pdf-page.css */
 body {
-  font-family: Arial, sans-serif;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
   margin: 0;
   padding: 0;
-  background: #f8f9fa;
+  background: #f0f4f8;
+  color: #1c1c1c;
 }
 
 .container {
@@ -16,36 +17,52 @@ body {
 .main-content {
   flex: 3;
   margin-right: 20px;
+  background: #ffffff;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
 }
 
 .pdf-viewer {
-  border: 1px solid #ccc;
+  border: 2px dashed #0077b6;
   margin-bottom: 20px;
-  background: white;
+  background: #e0f7fa;
+  border-radius: 8px;
 }
 
 .comments {
-  background: #fff;
-  padding: 10px;
-  border-radius: 5px;
+  background: #e6ecf0;
+  padding: 15px;
+  border-radius: 8px;
 }
 
 .comments h2 {
-  margin-top: 0;
+  color: #0077b6;
 }
 
 #comment-form textarea {
   width: 100%;
-  height: 60px;
-  margin-bottom: 10px;
+  height: 80px;
+  padding: 10px;
+  font-size: 14px;
+  border-radius: 5px;
+  border: 1px solid #ccc;
+  resize: vertical;
 }
 
 #comment-form button {
-  background-color: #007bff;
+  background-color: #0077b6;
   color: white;
   border: none;
-  padding: 8px 12px;
+  padding: 10px 16px;
+  margin-top: 10px;
+  border-radius: 5px;
   cursor: pointer;
+  font-weight: bold;
+}
+
+#comment-form button:hover {
+  background-color: #005f87;
 }
 
 .comment-list {
@@ -54,14 +71,27 @@ body {
 }
 
 .comment-list li {
-  margin-bottom: 10px;
+  margin-bottom: 12px;
+  padding: 8px;
+  background: #f0f9ff;
+  border-left: 4px solid #0077b6;
+  border-radius: 4px;
 }
 
 .sidebar {
   flex: 1;
-  background: #fff;
-  padding: 10px;
-  border-radius: 5px;
+  background: #ffffff;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.05);
+  height: fit-content;
+}
+
+.sidebar h3 {
+  color: #0077b6;
+  border-bottom: 2px solid #0077b6;
+  padding-bottom: 5px;
+  margin-bottom: 15px;
 }
 
 .related-list {
@@ -70,10 +100,42 @@ body {
 }
 
 .related-list li {
-  margin-bottom: 8px;
+  margin-bottom: 10px;
+  padding-left: 25px;
+  position: relative;
+}
+
+.related-list li::before {
+  content: '🔬';
+  position: absolute;
+  left: 0;
 }
 
 .related-list a {
   text-decoration: none;
-  color: #007bff;
+  color: #0077b6;
+  font-weight: bold;
+}
+
+.related-list a:hover {
+  text-decoration: underline;
+  color: #005f87;
+}
+
+.tag-list {
+  list-style: none;
+  padding: 0;
+  margin: 10px 0;
+  display: flex;
+  flex-wrap: wrap; /* allows wrapping to new line if too long */
+  gap: 8px;
+}
+
+.tag-list li {
+  background: #0077b6;
+  color: white;
+  padding: 5px 10px;
+  border-radius: 15px;
+  font-size: 0.9em;
+  white-space: nowrap;
 }

@@ -35,6 +35,7 @@ app.use(session({
     saveUninitialized: false,
     cookie: { secure: false }
 }))
+app.use(bodyParser.urlencoded({ extended: true }))
 // app.use(cookieParser());
 
 app.set('views', path.join(__dirname, 'views')); 
@@ -193,18 +194,47 @@ app.get('/login', (req, res) => {
     res.render('login')
 })
 
+app.post('/login2', async (req, res) => {
+    const { identifier, password } = req.body
+    db.get(
+    `SELECT * FROM users WHERE username = ? OR email = ?`,
+    [identifier, identifier],
+    async (err, user) => {
+      if (!user) {
+        return res.send('No user by that ID');
+      }
+      if (!user.verified) return res.send('Please verify your email before logging in.');
+      bcrypt.compare(password, user.password, (err, match) => {
+        if (!match) {
+            return res.send('Invalid Password') 
+        }
+        req.session.user = { username: user.username }
+        res.redirect('/')
+      })
+    
+    // res.redirect('/dashboard');
+  });
+})
+
 app.post('/login', async (req, res) => {
     const { identifier, password } = req.body
     db.get(
     `SELECT * FROM users WHERE username = ? OR email = ?`,
     [identifier, identifier],
     async (err, user) => {
-      if (!user || !(await bcrypt.compare(password, user.password))) {
-        return res.send('Invalid credentials');
+      if (!user) {
+        return res.json({ success: false, message: 'User not found' });
       }
       if (!user.verified) return res.send('Please verify your email before logging in.');
-    req.session.user = { username: user.username }
-    res.redirect('/dashboard');
+      bcrypt.compare(password, user.password, (err, match) => {
+        if (!match) {
+            return res.json({ success: false, message: 'Invalid Password' })
+        }
+        req.session.user = { username: user.username }
+        res.json({ success: true })
+      })
+    
+    // res.redirect('/dashboard');
   });
 
     // const user = users.find(u => u.username --- username)
@@ -220,7 +250,6 @@ app.post('/login', async (req, res) => {
 // Authentication middleware
 function requireAuth(req, res, next) {
     if (req.session.user) { 
-        
         next()
     } else {
         res.redirect('/login')
@@ -315,23 +344,56 @@ function isStrongPassword(pw) {
 /////////// HANDLING PDF DISPLAY PAGES \\\\\\\\\\\\
 app.get('/pdf/:slug', (req, res) => {
   const slug = req.params.slug;
-  let comments = [
-    {
-    user: "black boy",
-    text: "I like icecream"
-  },
-  {
-    user: "white girl",
-    text: "I like whiteclaws"
-  }
-  ]
-     dbPdf.get('SELECT * FROM pdfs WHERE slug = ?', [slug], (err, pdf) => {
+//   let comments = [
+//     {
+//     user: "black boy",
+//     text: "I like icecream"
+//   },
+//   {
+//     user: "white girl",
+//     text: "I like whiteclaws"
+//   }
+//   ]
+  
+    dbPdf.get('SELECT * FROM pdfs WHERE slug = ?', [slug], (err, pdf) => {
     if (err || !pdf) return res.status(404).send('PDF not found');
-    dbPdf.all('SELECT * FROM pdfs WHERE slug != ? LIMIT 10', [slug], (err2, related) => {
+        dbPdf.all(`SELECT * FROM comments WHERE pdf_id = ?`, [pdf.id], (err, comments) => {
+            if (err) {
+                console.error(err)
+                return res.send('error loading comments')
+            }
+            if (!comments) {
+                let comments = [
+                    {
+                        user: "The Warden",
+                        text: "No comments yet"
+                    }
+                ]
+            } else {
+            dbPdf.all('SELECT * FROM pdfs WHERE slug != ? LIMIT 10', [slug], (err2, related) => {
         // console.log(related)
-      res.render('projects', { pdf, related, comments });
+        console.log(pdf.id)
+        // dbPdf.all(`
+        //     SELECT * FROM pdf_tags WHERE pdf_id = ?`,[pdf.id], (err, tagNums) => {
+        //         console.log(tagNums)
+        //         tagNames = tagNums
+        //         res.render('projects', { pdf, related, comments, tagNames });
+        //     })
+                dbPdf.all(`
+                    SELECT tags.name FROM tags JOIN pdf_tags ON tags.id = pdf_tags.tag_id
+                    WHERE pdf_tags.pdf_id = ?`, [pdf.id], (err, rows) => {
+                        if (err) return console.error('Error fetching tags:', err.message)
+                        const tagNames = rows.map(row => row.name) 
+                    console.log(tagNames)
+                    res.render('projects', { pdf, related, comments, tagNames });
+                    })
+      
+            
+      })
+    }
     });
   });
+})
 //   const pdf = getPdfBySlug(slug); // custom function
 //   const comments = getCommentsForPdf(pdf.id);
 //   const relatedPdfs = getRelatedPdfs(pdf.id);
@@ -344,18 +406,21 @@ app.get('/pdf/:slug', (req, res) => {
     // comments,
     // relatedPdfs
 //   });
-});
+
 
 // Multer setup
 const pdfStorage = multer.diskStorage({
-  destination: './public/pdfs',
-  filename: (req, file, cb) => {
-    const unique = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, unique + path.extname(file.originalname));
+    destination: './public/pdfs',
+//   destination: function (req, file, cb) {
+//     cb(null, path.join(__dirname, 'public/pdf')); // Ensure this path exists!
+//   },
+   filename: function (req, file, cb) {
+    const uniqueName = Date.now() + '-' + file.originalname;
+    cb(null, uniqueName);
   }
 });
 
-const uploadPdf = multer({ pdfStorage });
+const uploadPdf = multer({ storage: pdfStorage });
 
 // Database
 const dbPdf = new sqlite3.Database('./db.sqlite')
@@ -387,15 +452,22 @@ dbPdf.serialize(() => {
     FOREIGN KEY (pdf_id) REFERENCES pdfs(id),
     FOREIGN KEY (tag_id) REFERENCES tags(id)
     )`)
+    dbPdf.run('PRAGMA foreign_keys = ON')
 });
 
 
 // Route handling
 // Route: Upload PDF
 app.post('/upload-pdf', requireAuth, uploadPdf.single('pdf'), (req, res) => {
-  const { title } = req.body;
+    if (!req.file) {
+        return res.status(400).send('No file uploaded. Check multer.')
+    }
+  const { title, tags } = req.body;
+  tagList = tags.split(',').map(tag => tag.trim().toLowerCase()).filter(tag => tag.length > 0)
+//   console.log(tagList)
   const slug = slugify(title, { lower: true, strict: true });
-  const filename = req.file.originalname;
+//   console.log(req.file)
+  const filename = req.file.filename; //req.file.originalname
 //   console.log(title)
 //   console.log(filename)
 //   console.log(req.session.user.username)
@@ -408,10 +480,96 @@ app.post('/upload-pdf', requireAuth, uploadPdf.single('pdf'), (req, res) => {
         console.error(err);
         return res.send('Error uploading PDF.');
       }
-      res.redirect(`/pdf/${slug}`);
-    }
-  );
+      const pdfId = this.lastID
+
+      tagList.forEach(tag => {
+        dbPdf.run(
+            `INSERT OR IGNORE INTO tags (name) VALUES (?)`, [tag],
+            function (err) {
+                if (err) return console.error(err.message)
+// Get tag ID
+                dbPdf.get(`SELECT id FROM tags WHERE name = ?`, [tag], (err, row) => {
+                    if (err) return console.error('Tag select error:', err.message)
+                    const tagId = row.id
+
+// Get Link in pdf_tags 
+                    dbPdf.run(
+                        `INSERT OR IGNORE INTO pdf_tags (pdf_id, tag_id) VALUES (?, ?)`, 
+                        [pdfId, tagId], (err) => {
+                            if (err) console.error('pdf_tags insert error:', err.message)
+                        }
+
+                    )
+                })
+            }
+        )
+      })
+      res.json({ success: true, title: title, slug: slug });;
+    });
 });
+
+app.delete('/pdf/:id', (req, res) => {
+  const pdfId = req.params.id;
+
+  // Optionally check that the current user owns the file
+    dbPdf.get(`SELECT * FROM pdfs WHERE id = ?`, [pdfId], (err, row) => {
+        if (row.uploaded_by !== req.session.user.username) {
+            return res.status(403).send('Forbidden');
+        }
+        // console.log(row)
+            const filePath = path.join(__dirname, 'public', 'pdfs', path.basename(row.filename));
+            // console.log(filePath)
+
+            dbPdf.run(`DELETE FROM pdf_tags WHERE pdf_id = ?`, [pdfId], function (err) {
+                if (err) {
+                    console.error('Failed to delete related pdf_tags:', err.message)
+                    return res.status(500).json({ success: false })
+                }
+            
+                dbPdf.run(`DELETE FROM pdfs WHERE id = ?`, [pdfId], function (err) {
+                    if (err) {
+                    console.error('Failed to delete PDF:', err.message);
+                    return res.status(500).json({ success: false });
+                    }
+                    // 4. Then delete the actual file
+                    fs.unlink(filePath, (fsErr) => {
+                    if (fsErr && fsErr.code !== 'ENOENT') {
+                        console.error('Failed to delete file:', fsErr.message);
+                        // optional: you could still consider it successful if DB delete worked
+                        return res.status(500).json({ success: false, message: 'File delete error' });
+                    }
+
+                    // // Also delete related entries (like from pdf_tags)
+                    // dbPdf.run(`DELETE FROM pdf_tags WHERE pdf_id = ?`, [pdfId]);
+                    res.json({ success: true });
+                })
+            })
+        });
+    })
+});
+
+
+//////// Handling Comments \\\\\\\\\\
+app.post('/add-comment/:slug', requireAuth, (req, res) => {
+    const slug = req.params.slug;
+    console.log(slug)
+    const username = req.session.user.username;
+    console.log(username)
+    const { comment } = req.body;
+    dbPdf.get(`SELECT * FROM pdfs WHERE slug = ?`, [slug], (err, pdf) => {
+        console.log(pdf.id)
+        dbPdf.run(
+        `INSERT INTO comments (pdf_id, user, text) VALUES (?, ?, ?)`, [pdf.id, username, comment],
+         (err) => {
+            if (err) {
+                 console.error(err) 
+                return res.send('Failed to add comment')
+            }
+                else res.redirect(`/pdf/${slug}`)
+        }
+    )
+    })
+})
 
 
 

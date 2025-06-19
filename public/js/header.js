@@ -21,10 +21,7 @@ songBtn.addEventListener('click', function() {
     window.location.href = 'songs'
 })
 dashBtn.addEventListener('click', function() {
-    window.location.href = 'dashboard'
-})
-newsBtn.addEventListener('click', function() {
-    window.location.href = 'news'
+    window.location.href = '/dashboard'
 })
 jazzJamsBtn.addEventListener('click', function() {
     window.location.href = 'jazz'

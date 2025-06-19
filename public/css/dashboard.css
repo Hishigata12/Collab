@@ -1,0 +1,108 @@
+/* public/styles/dashboard.css */
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  margin: 0;
+  padding: 0;
+  background: #eef3f9;
+  color: #1b1b1b;
+}
+
+.dashboard-container {
+  max-width: 1000px;
+  margin: auto;
+  padding: 20px;
+}
+
+.dashboard-header {
+  text-align: center;
+  background: #004080;
+  color: white;
+  padding: 20px;
+  border-radius: 10px 10px 0 0;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+}
+
+.dashboard-header h1 {
+  margin: 0;
+  font-size: 2em;
+  font-weight: bold;
+  letter-spacing: 1px;
+}
+
+.upload-form {
+  background: white;
+  padding: 20px;
+  border-radius: 0 0 10px 10px;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+  margin-bottom: 20px;
+  position: relative;
+}
+
+.upload-form input[type="text"],
+.upload-form input[type="file"] {
+  display: block;
+  width: 100%;
+  margin-bottom: 10px;
+  padding: 10px;
+  font-size: 16px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+.upload-form button {
+  background: #0077b6;
+  color: white;
+  padding: 10px 15px;
+  font-weight: bold;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.upload-form button:hover {
+  background: #005f87;
+}
+
+.upload-animation {
+  display: none;
+  margin-top: 10px;
+  font-size: 14px;
+  color: #004080;
+  animation: fadein 0.5s ease-in-out forwards;
+}
+
+@keyframes fadein {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.dashboard-list {
+  margin-top: 30px;
+}
+
+.dashboard-list h2 {
+  border-bottom: 2px solid #0077b6;
+  padding-bottom: 5px;
+  color: #004080;
+}
+
+.dashboard-list ul {
+  list-style: none;
+  padding: 0;
+}
+
+.dashboard-list li {
+  padding: 10px;
+  border-bottom: 1px solid #ddd;
+}
+
+.dashboard-list li a {
+  color: #0077b6;
+  text-decoration: none;
+}
+
+.dashboard-list li a:hover {
+  text-decoration: underline;
+  color: #005f87;
+}

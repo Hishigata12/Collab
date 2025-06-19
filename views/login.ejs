@@ -8,6 +8,7 @@
   <link rel="stylesheet" href="css/signup.css">
     <!-- Optional: Font Awesome icons -->
   <script src="https://kit.fontawesome.com/a2e00f4c52.js" crossorigin="anonymous"></script>
+  <link rel="stylesheet" href="/css/login.css">
   <%- include('header'); -%>
 </head>
 <body>
@@ -15,8 +16,9 @@
     <div class="sci-icon">
       <i class="fas fa-atom"></i>
     </div>
+
     <h2>Login to the collaborative world</h2>
-      <form action="/login" method="POST">
+      <form id="loginForm" class="login-form">
       <input type ="text" name="identifier" required placeholder="Username or Email">
       <div class="password-container">
       <input 
@@ -29,7 +31,9 @@
       <button type="button" id="togglePassword">👁️</button>
       </div>
       <button type="submit">Login</button>
+      <div id="loginError" class="error-message"></div>
     </form>
+
   </div>
   <script>
       document.getElementById("togglePassword").addEventListener("click", function () {
@@ -38,6 +42,41 @@
       pwInput.setAttribute("type", type);
       this.textContent = type === "password" ? "👁️" : "🙈";
     });
+    document.addEventListener('DOMContentLoaded', () => {
+      const form = document.getElementById('loginForm');
+      const passwordInput = document.getElementById('password');
+      const errorBox = document.getElementById('loginError');
+
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+
+        const formData = new URLSearchParams(new FormData(form));
+          console.log(formData)
+        try {
+          const res = await fetch('/login', {
+            method: 'POST',
+            body: formData
+          });
+
+          const result = await res.json();
+
+          if (result.success) {
+            window.location.href = '/dashboard'; // or wherever
+          } else {
+            // Trigger shake animation
+            form.classList.add('shake');
+            setTimeout(() => form.classList.remove('shake'), 400);
+
+            // Clear password and show error
+            passwordInput.value = '';
+            errorBox.textContent = result.message || 'Invalid credentials';
+          }
+        } catch (err) {
+          console.error('Login error:', err);
+        }
+      });
+    });
+
   </script>
 </body>
 </html>
