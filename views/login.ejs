@@ -9,7 +9,7 @@
     <!-- Optional: Font Awesome icons -->
   <script src="https://kit.fontawesome.com/a2e00f4c52.js" crossorigin="anonymous"></script>
   <link rel="stylesheet" href="/css/login.css">
-  <%- include('header'); -%>
+  <%- include('banner'); -%>
 </head>
 <body>
   <div class="signup-box">
@@ -55,6 +55,9 @@
         try {
           const res = await fetch('/login', {
             method: 'POST',
+            headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
             body: formData
           });
 

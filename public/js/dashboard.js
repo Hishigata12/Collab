@@ -2,6 +2,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const form = document.getElementById("uploadForm");
   const uploadMessage = document.getElementById("uploadMessage");
   const pdfList = document.getElementById('pdf-list')
+  const jobForm = document.getElementById("jobForm")
 
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
@@ -47,26 +48,26 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
 
-    document.querySelectorAll('.delete-btn').forEach(button => {
-    button.addEventListener('click', async (e) => {
-      const pdfId = button.dataset.id;
-      console.log(pdfId)
-      if (!confirm('Are you sure you want to delete this PDF?')) return;
+  document.querySelectorAll('.delete-btn').forEach(button => {
+  button.addEventListener('click', async (e) => {
+    const pdfId = button.dataset.id;
+    console.log(pdfId)
+    if (!confirm('Are you sure you want to delete this PDF?')) return;
 
-      try {
-        
-        const res = await fetch(`/pdf/${pdfId}`, {
-          method: 'DELETE',
-        });
+    try {
+      
+      const res = await fetch(`/pdf/${pdfId}`, {
+        method: 'DELETE',
+      });
 
-        const result = await res.json();
-        if (result.success) {
-          // Remove item from DOM
-          const li = button.closest('li');
-          li.remove();
-        } else {
-          alert('Failed to delete PDF.');
-        }
+      const result = await res.json();
+      if (result.success) {
+        // Remove item from DOM
+        const li = button.closest('li');
+        li.remove();
+      } else {
+        alert('Failed to delete PDF.');
+      }
       } catch (err) {
         console.error('Delete error:', err);
         alert('An error occurred.');
@@ -74,5 +75,20 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 });
+function toggleForm(formId) {
+      const postForm = document.getElementById('uploadForm');
+      const jobForm = document.getElementById('jobForm');
+
+      if (formId === 'form') {
+          const shouldShow = postForm.classList.contains('hidden');
+          postForm.classList.toggle('hidden', !shouldShow);
+          jobForm.classList.add('hidden');
+      } else if (formId === 'jobForm') {
+          const shouldShow = jobForm.classList.contains('hidden');
+          jobForm.classList.toggle('hidden', !shouldShow);
+          postForm.classList.add('hidden');
+      }
+  }
+
 
 

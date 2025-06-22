@@ -4,7 +4,8 @@ body {
   background: radial-gradient(circle at top left, #0f2027, #203a43, #2c5364);
   color: #fff;
   display: flex;
-  justify-content: center;
+  flex-direction: column;
+  /* justify-content: center; */
   align-items: center;
   height: 100vh;
 }

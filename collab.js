@@ -216,6 +216,30 @@ app.post('/login2', async (req, res) => {
   });
 })
 
+app.post('/login3', async (req, res) => { // THIS IS JUST FOR TROUBLESHOOTING
+    // const { identifier, password } = req.body
+    const identifier = 'Hishigata'
+    const password = process.env.HISHI
+    db.get(
+    `SELECT * FROM users WHERE username = ? OR email = ?`,
+    [identifier, identifier],
+    async (err, user) => {
+      if (!user) {
+        return res.send('No user by that ID');
+      }
+      if (!user.verified) return res.send('Please verify your email before logging in.');
+      bcrypt.compare(password, user.password, (err, match) => {
+        if (!match) {
+            return res.send('Invalid Password') 
+        }
+        req.session.user = { username: user.username }
+        res.redirect('/')
+      })
+    
+    // res.redirect('/dashboard');
+  });
+})
+
 app.post('/login', async (req, res) => {
     const { identifier, password } = req.body
     db.get(
@@ -548,6 +572,36 @@ app.delete('/pdf/:id', (req, res) => {
     })
 });
 
+//////// SEARCHING \\\\\\\\
+app.post('/search', (req, res) => {
+  const { query } = req.body
+  searchTerm = '%' + query + '%'
+
+dbPdf.all(`
+    SELECT 
+      pdfs.*, 
+      COUNT(DISTINCT tags.id) AS tag_match_count,
+      (CASE WHEN pdfs.title LIKE ? THEN 1 ELSE 0 END) AS title_match
+    FROM pdfs
+    LEFT JOIN pdf_tags ON pdfs.id = pdf_tags.pdf_id
+    LEFT JOIN tags ON pdf_tags.tag_id = tags.id
+    WHERE 
+      pdfs.title LIKE ? OR 
+      tags.name LIKE ? OR 
+      pdfs.uploaded_by LIKE ? OR
+      pdfs.uploaded_at LIKE ?
+    GROUP BY pdfs.id
+    ORDER BY 
+      title_match DESC,
+      tag_match_count DESC
+  `, [searchTerm, searchTerm, searchTerm, searchTerm, searchTerm], (err, rows) => {
+    if (err) return console.error(err);
+    // if (rows) results.push(rows)
+    console.log(rows); // display ordered results
+    res.json(rows)
+  });
+})
+
 
 //////// Handling Comments \\\\\\\\\\
 app.post('/add-comment/:slug', requireAuth, (req, res) => {
@@ -571,6 +625,25 @@ app.post('/add-comment/:slug', requireAuth, (req, res) => {
     })
 })
 
+
+app.get('/random', (req, res) => {
+  let search  = true
+  db.get('SELECT MAX(id) AS maxID FROM pdfs', (err, row) => {
+    if (err) return console.error(err.message)
+    let max = row.maxID
+    while (search) {
+      let myInt = Math.floor(Math.random() * (max)) + 1;
+      db.get('SELECT 1 FROM pdfs WHERE id = ? LIMIT 1', [myInt], (err, row2) => {
+        if (err) return console.err(err.message)
+          
+        if (row2) {
+          search = false;
+          res.redirect(`/pdf/${row2.slug}`)
+        }
+      })
+    }
+  })
+})
 
 
 

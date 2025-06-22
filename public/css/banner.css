@@ -1,0 +1,116 @@
+header {
+     margin: 1rem 0rem 0rem 0rem;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #111;
+    color: #eee;
+    }
+
+    .banner {
+      display: flex;
+      align-items: center;
+      margin: 10 0px;
+      justify-content: space-around;
+      background: #1a1a1a;
+      padding: 1rem 2rem;
+      border-bottom: 2px solid #00d8ff;
+      box-shadow: 0 2px 8px rgba(0, 216, 255, 0.1);
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .dropdown {
+      position: relative;
+      display: inline-block;
+      /* margin-right: 1em; */
+    }
+
+    .dropbtn {
+        padding: 0.5rem;
+        border-radius: 4px;
+        background-color: #2a2a2a;
+        /* color: #fff; */
+        color:rgb(225, 225, 250);
+         font-weight: bold;
+        border: 1px solid #00d8ff;
+      cursor: pointer;
+    }
+    .header-btn {
+    padding: 0.5rem 1rem;
+    background-color: #2a2a2a;
+    /* color: #fff; */
+    color:rgb(225, 225, 250);
+    border: 1px solid #00d8ff;
+    border-radius: 4px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    }
+
+    .header-btn:hover {
+    background-color: #00b8d4;
+    }
+
+    .dropdown-content {
+      display: none;
+      position: absolute;
+      background-color: #444;
+      min-width: 160px;
+      z-index: 1;
+      opacity: 90%;
+      border-radius: 6px;
+    }
+
+    .dropdown-content a {
+      color: white;
+      padding: 10px 16px;
+      text-decoration: none;
+      display: block;
+    }
+
+    .dropdown-content a:hover {
+        color: red;
+        font-weight: bold;
+    }
+
+    .dropdown:hover .dropdown-content {
+      display: block;
+    }
+
+    .main-container {
+      display: flex;
+      justify-content: space-between;
+      padding: 2em;
+      flex-wrap: wrap;
+    }
+
+    .search-bar {
+      text-align: center;
+      margin: 20px 0;
+      width: 50%;
+      border-radius: 6px;
+    }
+
+    .search-bar input {
+      border: 1px solid #00d8ff;
+      width: 90%;
+      padding: 10px;
+      font-size: 16px;
+      border-radius: 6px;
+      text-align: center;
+      background-color: #2a2a2a;
+      color:rgb(225, 225, 250);
+    }
+
+    .logo {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #00d8ff;
+}
+
+.menu-group {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  flex-wrap: wrap;
+}
+

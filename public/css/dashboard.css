@@ -1,7 +1,7 @@
 /* public/styles/dashboard.css */
 body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  margin: 0;
+  margin: 1rem 1rem;
   padding: 0;
   background: #eef3f9;
   color: #1b1b1b;
@@ -41,8 +41,9 @@ body {
 .upload-form input[type="text"],
 .upload-form input[type="file"] {
   display: block;
-  width: 100%;
+  width: 95%;
   margin-bottom: 10px;
+  /* margin-right: 40px; */
   padding: 10px;
   font-size: 16px;
   border: 1px solid #ccc;
@@ -105,4 +106,8 @@ body {
 .dashboard-list li a:hover {
   text-decoration: underline;
   color: #005f87;
+}
+
+.hidden {
+  display: none;
 }
