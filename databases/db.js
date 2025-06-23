@@ -11,13 +11,13 @@ db.serialize(() => {
 //     email TEXT UNIQUE, 
 //     verified INTEGER DEFAULT 0
 //   )`);
-  db.run(`CREATE TABLE IF NOT EXISTS msgs (
-  id INTEGER PRIMARY KEY AUTOINCREMENT,
-  sender TEXT NOT NULL,
-  recipient TEXT NOT NULL,
-  message TEXT NOT NULL,
-  timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
-);`)
+//   db.run(`CREATE TABLE IF NOT EXISTS msgs (
+//   id INTEGER PRIMARY KEY AUTOINCREMENT,
+//   sender TEXT NOT NULL,
+//   recipient TEXT NOT NULL,
+//   message TEXT NOT NULL,
+//   timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
+// );`)
 });
 
 // Database

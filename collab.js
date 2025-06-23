@@ -7,7 +7,8 @@ const app = express()
 const path = require('path')
 const cors = require("cors")
 const bodyParser = require('body-parser')
-const multer = require('multer')
+// const multer = require('multer')
+const {upload, uploadPdf} = require('./middleware/multerware')
 const session = require('express-session')
 const bcrypt = require('bcrypt')
 const sqlite3 = require('sqlite3').verbose()
@@ -26,6 +27,9 @@ const fs = require('fs')
 // const EventEmitter = require('events')
 const { db, dbPdf } = require('./databases/db')
 const sharedSession = require('express-socket.io-session');
+const routes = require('./routes/indexRoutes')
+const { requireAuth } = require('./middleware/middleware')
+const { isStrongPassword } = require('./middleware/controlware')
 
 
 app.use(express.json());
@@ -45,6 +49,7 @@ app.use(bodyParser.urlencoded({ extended: true }))
 app.set('views', path.join(__dirname, 'views')); 
 app.set('view engine', 'ejs')
 app.engine('ejs', require('ejs').__express)
+app.use(routes)
 
 const server = http.createServer(app)
 const io = new Server(server)
@@ -91,47 +96,6 @@ app.use(sessionMw);
 io.use(sharedSession(sessionMw, {
   autoSave: true
 }));
-
-// Authentication middleware
-function requireAuth(req, res, next) {
-    if (req.session.user) { 
-        next()
-    } else {
-        res.redirect('/login')
-    }
-}
-
-// FUNCTIONS
-// Password Generation
-function isStrongPassword(pw) {
-  return pw.length >= 8 &&
-         /[a-z]/.test(pw) &&
-         /[A-Z]/.test(pw) &&
-         /\d/.test(pw);
-}
-
-// Storage
-const imageStorage = multer.diskStorage({
-    destination: './public/images',
-    filename: (req, file, cb) => {
-        cb(null, Date.now() + path.extname(file.originalname))
-    }
-})
-
-const upload  = multer({ imageStorage })
-
-const pdfStorage = multer.diskStorage({
-    destination: './public/pdfs',
-//   destination: function (req, file, cb) {
-//     cb(null, path.join(__dirname, 'public/pdf')); // Ensure this path exists!
-//   },
-   filename: function (req, file, cb) {
-    const uniqueName = Date.now() + '-' + file.originalname;
-    cb(null, uniqueName);
-  }
-});
-
-const uploadPdf = multer({ storage: pdfStorage });
 
 
 /////////////////////////REQUESTS\\\\\\\\\\\\\\\\
@@ -371,10 +335,10 @@ app.post('/logout', (req, res) => {
 
 // Paths
 // app.get('/', (req, res) => res.render('main', { pages }))
-app.get('/', (req, res) => {
-    const username = req.session.user ? req.session.user.username : 'Guest';
-    res.render('index', { username })
-})
+// app.get('/', (req, res) => {
+//     const username = req.session.user ? req.session.user.username : 'Guest';
+//     res.render('index', { username })
+// })
 
 app.get('/newuser', (req, res) => res.render('newuser'))
 
