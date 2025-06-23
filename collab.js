@@ -295,7 +295,23 @@ app.get('/dashboard', requireAuth, async (req, res) => {
                 res.send('no PDF found')
             }
             // console.log(pdf)
-        res.render('dashboard', { username, pdf })
+            dbPdf.all(`
+              SELECT * FROM jobs WHERE username = ?`, [username], (err, jobs) => {
+                if (err || !jobs.length === 0) {
+                  jobs = {
+                    id: 0,
+                    title: '',
+                    username: '',
+                    description: '',
+                    reqs: '',
+                    contact: '',
+                    pdf: '',
+                    active: 0
+                  }
+                }
+                res.render('dashboard', { username, pdf, jobs })
+              })
+        // res.render('dashboard', { username, pdf })
     })
 })
 
@@ -476,6 +492,16 @@ dbPdf.serialize(() => {
     FOREIGN KEY (pdf_id) REFERENCES pdfs(id),
     FOREIGN KEY (tag_id) REFERENCES tags(id)
     )`)
+  dbPdf.run(`CREATE TABLE IF NOT EXISTS jobs (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT,
+    title TEXT,
+    description TEXT,
+    reqs TEXT,
+    contact TEXT, 
+    pdf TEXT, 
+    active BOOLEAN DEFAULT 1
+  )`);
     dbPdf.run('PRAGMA foreign_keys = ON')
 });
 
@@ -627,23 +653,120 @@ app.post('/add-comment/:slug', requireAuth, (req, res) => {
 
 
 app.get('/random', (req, res) => {
-  let search  = true
-  db.get('SELECT MAX(id) AS maxID FROM pdfs', (err, row) => {
+  dbPdf.get('SELECT MAX(id) AS maxID FROM pdfs', (err, row) => {
     if (err) return console.error(err.message)
-    let max = row.maxID
-    while (search) {
-      let myInt = Math.floor(Math.random() * (max)) + 1;
-      db.get('SELECT 1 FROM pdfs WHERE id = ? LIMIT 1', [myInt], (err, row2) => {
+    const max = row.maxID
+    function tryRandom() {
+      const myInt = Math.floor(Math.random() * (max)) + 1;
+      console.log(myInt)
+      dbPdf.get('SELECT * FROM pdfs WHERE id = ?', [myInt], (err, row2) => {
         if (err) return console.err(err.message)
           
         if (row2) {
-          search = false;
+          console.log(row2)
           res.redirect(`/pdf/${row2.slug}`)
+        } else {
+          tryRandom()   
         }
       })
     }
+    tryRandom()
   })
 })
+
+
+/////// Pages \\\\\\\
+//Jobs
+app.get('/jobs', (req, res) => {
+  dbPdf.all('SELECT * FROM jobs', (err, jobs) => {
+    if (err) return console.error(err.message)
+      // console.log(jobs)
+    res.render('jobs', { jobs })
+  })
+})
+
+app.post('/jobs', (req, res) => {
+  const {search} = req.body
+  search2 = '%' + search + '%'
+  console.log(search)
+  dbPdf.all(`SELECT * FROM jobs WHERE
+    title COLLATE NOCASE LIKE ? OR
+    description COLLATE NOCASE LIKE ? OR
+    reqs COLLATE NOCASE LIKE ? OR
+    username COLLATE NOCASE LIKE ? OR
+    pdf COLLATE NOCASE LIKE ?;
+    `, [search2], (err, jobs) => {
+  if (err) return console.error(err.message)
+    // console.log(jobs)
+  res.render('jobs', { jobs })
+  })
+})
+
+app.get('/jobs/:id', (req, res) => {
+  const id = req.params.id
+  dbPdf.get(`
+    SELECT * FROM jobs WHERE id = ?`, [id], (err, job) => {
+      if (err) return res.error(err)
+      if (!job) return res.send('No job found with that id')
+        console.log(job)
+      res.json(job) 
+    })
+})
+
+// Route: Upload PDF
+app.post('/post-job', requireAuth, uploadPdf.single('pdf'), (req, res) => {
+    if (!req.file) {
+        return res.status(400).send('No file uploaded. Check multer.')
+    }
+  const { title, desc, reqs, contact } = req.body;
+  const username = req.session.user.username
+  // const slug = slugify(title, { lower: true, strict: true });
+  const filename = req.file.filename; //req.file.originalname
+
+  dbPdf.run(
+    'INSERT INTO jobs (username, title, description, reqs, contact, pdf) VALUES (?, ?, ?, ?, ?, ?)',
+    [username, title, desc, reqs, contact, filename],
+    function (err) {
+      if (err) {
+        console.error(err);
+        return res.send('Error uploading PDF.');
+      }
+      res.json({ success: true, title: title, username: username,
+         reqs: reqs, contact: contact, filename: filename, id: this.lastID });;
+    });
+});
+
+app.delete('/jobs/:id', requireAuth, (req, res) => {
+  const pdfId = req.params.id;
+
+  // Optionally check that the current user owns the file
+    dbPdf.get(`SELECT * FROM jobs WHERE id = ?`, [pdfId], (err, row) => {
+        if (row.username !== req.session.user.username || row.username !== process.env.ADMIN) {
+            return res.status(403).send('Forbidden');
+        }
+  // console.log(row)
+      const filePath = path.join(__dirname, 'public', 'pdfs', path.basename(row.pdf));
+      // console.log(filePath)       
+          dbPdf.run(`DELETE FROM jobs WHERE id = ?`, [pdfId], function (err) {
+              if (err) {
+              console.error('Failed to delete PDF:', err.message);
+              return res.status(500).json({ success: false });
+              }
+              // 4. Then delete the actual file
+              fs.unlink(filePath, (fsErr) => {
+              if (fsErr && fsErr.code !== 'ENOENT') {
+                  console.error('Failed to delete file:', fsErr.message);
+                  // optional: you could still consider it successful if DB delete worked
+                  return res.status(500).json({ success: false, message: 'File delete error' });
+              }
+
+              // // Also delete related entries (like from pdf_tags)
+              // dbPdf.run(`DELETE FROM pdf_tags WHERE pdf_id = ?`, [pdfId]);
+              res.json({ success: true });
+        })
+      })
+    })
+});
 
 
 
@@ -691,5 +814,17 @@ app.post('/signup', (req, res) => {
 
 
 // // environment variable
-const port = process.env.PORT || 3000 // use the chosen variable if available, if not use 3000
+const port = 3500//process.env.PORT || 3000 // use the chosen variable if available, if not use 3000
 app.listen(port, () => console.log(`Listening on port ${port}`))
+
+
+// For setting up https later
+
+// const serverOptions = {
+//   key: fs.readFileSync('key.pem'),
+//   cert: fs.readFileSync('cert.pem')
+// };
+
+// https.createServer(serverOptions, app).listen(443, () => {
+//   console.log("HTTPS server running on port 443");
+// });

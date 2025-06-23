@@ -1,15 +1,17 @@
 <!DOCTYPE html>
 <html>
-<header> 
+
+<head> 
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="stylesheet" href="/css/dashboard.css">
     <%- include('banner'); -%>
     <%- include('dash'); -%>
-</header>
+</head>
 
 
 <body>
+
     <h1>Dashboard for <%= username %></h1>
     <h1> Welcome <%= username  %></h1>
     <div id="form-div">
@@ -31,13 +33,24 @@
             <input type="file" name="pdf" accept="application/pdf">
             
             <button type="submit">Submit Job Listing</button>
+            <div class="upload-animation" id="uploadMessage2">Job listed successfully!</div>
         </form>
     </div>
+    <h2>Articles Published</h2>
     <ul class="upload-list" id="pdf-list">
         <% pdf.forEach(p => { %>
             <li>
                 <a href="/pdf/<%= p.slug %>"><%= p.title %></a>
-                <button class="delete-btn" data-id="<%= p.id %>">🗑️ Delete</button>
+                <button class="delete-btn-pdf" data-id="<%= p.id %>">🗑️ Delete</button>
+            </li>
+        <% }) %>
+    </ul>
+    <h2>Job Listings</h2>
+    <ul class="upload-list" id="job-postings">
+         <% jobs.forEach(j => { %>
+            <li>
+                <a href="/jobs/<%= j.id %>"><%= j.title %></a>
+                <button class="delete-btn-job" data-id="<%= j.id %>">🗑️ Delete</button>
             </li>
         <% }) %>
     </ul>
@@ -45,22 +58,6 @@
     <form action="/logout" method="POST">
         <button type="submit">Logout</button>
     </form>
-    <script>
-        // function toggleForm(formId) {
-        //     const postForm = document.getElementById('uploadForm');
-        //     const jobForm = document.getElementById('jobForm');
-
-        //     if (formId === 'form') {
-        //         const shouldShow = postForm.classList.contains('hidden');
-        //         postForm.classList.toggle('hidden', !shouldShow);
-        //         jobForm.classList.add('hidden');
-        //     } else if (formId === 'jobForm') {
-        //         const shouldShow = jobForm.classList.contains('hidden');
-        //         jobForm.classList.toggle('hidden', !shouldShow);
-        //         postForm.classList.add('hidden');
-        //     }
-        // }
-    </script>
-    <script src="/js/dashboard.js"></script>
+    <!-- <script src="/js/dashboard.js"></script> -->
 </body>
 </html>

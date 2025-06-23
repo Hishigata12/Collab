@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+        <!-- <pre><%= JSON.stringify(jobs, null, 2) %></pre> -->
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link rel="stylesheet" href="/css/jobs.css">
+        <%- include('banner'); -%>
+    </head>
+    <body>
+        <div class='main-div'>
+        <div id="listing-div">
+            <h1>Job Listings</h1>
+            <form action="/jobs" method="POST">
+                <input id='search-jobs' name="search" type="text" placeholder="search jobs" required>
+                <button type="submit" hidden></button>
+            </form>
+            <% if (jobs.length > 0) { %>
+            <ul id="job-list">
+                <% jobs.forEach(j => { %>
+                    <li><a href="#" class="view-job" data-id="<%= j.id %>"><%= j.title %></a></li>
+                    <% }) %>
+            </ul>
+            <% } else { %> 
+                <p>No jobs available</p>
+                <% } %>
+        </div>
+        <div id="job-details">
+            <div id="job-desc">
+
+            </div>
+            <div class="container">
+                <main class="main-content">
+                <div class="pdf-viewer">
+                </div>
+
+        </div>
+        </div>
+        <script src="/js/jobs.js"></script>
+    </body>
+</html>
