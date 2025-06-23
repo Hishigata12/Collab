@@ -10,7 +10,6 @@ const jwt = require('jsonwebtoken');
 const slugify = require('slugify');
 const session = require('express-session');
 const bcrypt = require('bcrypt');
-
 //Import functions
 const { isStrongPassword } = require('../middleware/controlware')
 
@@ -206,8 +205,6 @@ exports.loginIndexPg = async (req, res) => {
 
 //user profile/dashboard page
 exports.dashboard = async (req, res) => {
-//check if this code works! Ashley soln to adding middleware    
-    app.use(requireAuth);
     const username = req.session.user.username
     // console.log(username)
     dbPdf.all(`
