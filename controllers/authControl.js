@@ -11,9 +11,7 @@ const slugify = require('slugify');
 const session = require('express-session');
 const bcrypt = require('bcrypt');
 const multer = require('multer');
-//checking for use in middleware
-const express = require('express');
-const app = express();
+
 
 // Password Generation
 function isStrongPassword(pw) {
@@ -23,6 +21,7 @@ return pw.length >= 8 &&
 /\d/.test(pw);
 }
 
+//!!REMOVE-middleware will be kept separate folder
 // Authentication middleware
 function requireAuth(req, res, next) {
 if (req.session.user) {
@@ -247,8 +246,6 @@ exports.loginIndexPg = async (req, res) => {
 
 //user profile/dashboard page
 exports.dashboard = async (req, res) => {
-//check if this code works! Ashley soln to adding middleware    
-    app.use(requireAuth);
     const username = req.session.user.username
     // console.log(username)
     dbPdf.all(`

@@ -7,6 +7,8 @@ const auth = require('../controllers/authControl.js');
 const pg = require('../controllers/pageControl.js');
 const store = require('../controllers/storageControl.js');
 
+//!!Import all middleware files
+
 //Index routes 
 const routes = Router();
 
@@ -33,13 +35,23 @@ route.get('/dashboard', auth.dashboard);
 route.post('/logout', auth.logoutErr);
 
 //General page controls
-//dynamic page routing
-route.get('/pages/:slug', pg.pageRoute);
+//search routing
+routes.post('/search', pg.searchGen);
+
+
+//comment routing
+//!! middleware required
+//routes.post ('/add-comment/:slug', requireAuth, pg.pdfComment);
 
 //Site storage controls
 //image storing
-// requires middleware
-//route.post('/upload-image', store.imgUpload);
+//!!requires middleware
+//route.post('/upload-image', upload.single('image'), store.imgUpload);
+//pdf storing
+//!!two middleware
+//route.post('/upload-pdf', requireAuth, uploadPdf.single('pdf'), store.pdfUpload);)
+//user deletion of file(s)
+routes.delete('/pdf/:id', store.deletePdf);
 
 //End of indexRoutes.js
 module.exports = routes;
