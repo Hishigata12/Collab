@@ -15,6 +15,7 @@ const crypto = require('crypto')
 const nodemailer = require('nodemailer')
 const jwt = require('jsonwebtoken')
 const slugify = require('slugify')
+const { Server } = require('socket.io')
 // const { spawn } = require('child_process');
 // const { exec } = require('child_process')
 // const {parse} = require('csv-parse');
@@ -23,6 +24,8 @@ const slugify = require('slugify')
 // const os = require('os')
 const fs = require('fs')
 // const EventEmitter = require('events')
+const { db, dbPdf } = require('./databases/db')
+const sharedSession = require('express-socket.io-session');
 
 
 app.use(express.json());
@@ -36,27 +39,18 @@ app.use(session({
     cookie: { secure: false }
 }))
 app.use(bodyParser.urlencoded({ extended: true }))
+
 // app.use(cookieParser());
 
 app.set('views', path.join(__dirname, 'views')); 
 app.set('view engine', 'ejs')
 app.engine('ejs', require('ejs').__express)
 
+const server = http.createServer(app)
+const io = new Server(server)
+
 jwtSecret = process.env.secretKey
 BASE_URL = process.env.BASE_URL
-
-let db = new sqlite3.Database('./users.db');
-// Create users table if it doesn't exist
-db.serialize(() => {
-  db.run(`CREATE TABLE IF NOT EXISTS users (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    username TEXT UNIQUE,
-    password TEXT,
-    email TEXT UNIQUE, 
-    verified INTEGER DEFAULT 0
-  )`);
-});
-  
 
 const transporter = nodemailer.createTransport({
   service: 'gmail', // or use SMTP for better control
@@ -66,13 +60,81 @@ const transporter = nodemailer.createTransport({
   }
 });
 
+// Listen for connections
+io.on('connection', (socket) => {
+  const username = socket.handshake.session.user?.username
+  if (!username) return
+  console.log(`User ${username} has connected`);
 
-// Load or initialize pages
-let pages = [];
-if (fs.existsSync('pages.json')) {
-  pages = JSON.parse(fs.readFileSync('pages.json'));
+  // Join a room named after the user for direct messaging
+  socket.join(username);
+
+  socket.on('private message', ({ to, message }) => {
+    io.to(to).emit('private message', {
+      from: username,
+      message
+    });
+  });
+});
+
+// Setup session middleware
+const sessionMw = session({
+  secret: 'supersecretkey',
+  resave: false,
+  saveUninitialized: false
+});
+
+// Use session in Express
+app.use(sessionMw);
+
+// Share session with Socket.IO
+io.use(sharedSession(sessionMw, {
+  autoSave: true
+}));
+
+// Authentication middleware
+function requireAuth(req, res, next) {
+    if (req.session.user) { 
+        next()
+    } else {
+        res.redirect('/login')
+    }
 }
 
+// FUNCTIONS
+// Password Generation
+function isStrongPassword(pw) {
+  return pw.length >= 8 &&
+         /[a-z]/.test(pw) &&
+         /[A-Z]/.test(pw) &&
+         /\d/.test(pw);
+}
+
+// Storage
+const imageStorage = multer.diskStorage({
+    destination: './public/images',
+    filename: (req, file, cb) => {
+        cb(null, Date.now() + path.extname(file.originalname))
+    }
+})
+
+const upload  = multer({ imageStorage })
+
+const pdfStorage = multer.diskStorage({
+    destination: './public/pdfs',
+//   destination: function (req, file, cb) {
+//     cb(null, path.join(__dirname, 'public/pdf')); // Ensure this path exists!
+//   },
+   filename: function (req, file, cb) {
+    const uniqueName = Date.now() + '-' + file.originalname;
+    cb(null, uniqueName);
+  }
+});
+
+const uploadPdf = multer({ storage: pdfStorage });
+
+
+/////////////////////////REQUESTS\\\\\\\\\\\\\\\\
 // Bcrypt for Routes and Authentication
 // const users = [];
 
@@ -260,25 +322,9 @@ app.post('/login', async (req, res) => {
     
     // res.redirect('/dashboard');
   });
-
-    // const user = users.find(u => u.username --- username)
-    // if (!user) return res.status(401).send('User not found')
-
-    // const match = await bcrypt.compare(password, user.password);
-    // if (!match) return res.status(401).send('Incorrect password')
-    
-    // req.session.user = user.username
-    // res.redirect('/dashboard')
 })
 
-// Authentication middleware
-function requireAuth(req, res, next) {
-    if (req.session.user) { 
-        next()
-    } else {
-        res.redirect('/login')
-    }
-}
+
 app.get('/dashboard', requireAuth, async (req, res) => {
     const username = req.session.user.username
     // console.log(username)
@@ -342,15 +388,7 @@ app.get('/pages/:slug', (req, res) => { // is used to handle any calls to /pages
   res.render('page', { page }); // gets page.ejs and sends in the object page from pages
 });
 
-// Storing Images
-const imageStorage = multer.diskStorage({
-    destination: './public/images',
-    filename: (req, file, cb) => {
-        cb(null, Date.now() + path.extname(file.originalname))
-    }
-})
 
-const upload  = multer({ imageStorage })
 
 app.post('/upload-image', upload.single('image'), (req, res) => {
     const imageUrl = `/images/${req.file.filename}`
@@ -373,13 +411,7 @@ app.post('/upload-image', upload.single('image'), (req, res) => {
 })
 
 
-// Password Generation
-function isStrongPassword(pw) {
-  return pw.length >= 8 &&
-         /[a-z]/.test(pw) &&
-         /[A-Z]/.test(pw) &&
-         /\d/.test(pw);
-}
+
 
 /////////// HANDLING PDF DISPLAY PAGES \\\\\\\\\\\\
 app.get('/pdf/:slug', (req, res) => {
@@ -449,61 +481,50 @@ app.get('/pdf/:slug', (req, res) => {
 
 
 // Multer setup
-const pdfStorage = multer.diskStorage({
-    destination: './public/pdfs',
-//   destination: function (req, file, cb) {
-//     cb(null, path.join(__dirname, 'public/pdf')); // Ensure this path exists!
-//   },
-   filename: function (req, file, cb) {
-    const uniqueName = Date.now() + '-' + file.originalname;
-    cb(null, uniqueName);
-  }
-});
 
-const uploadPdf = multer({ storage: pdfStorage });
 
-// Database
-const dbPdf = new sqlite3.Database('./db.sqlite')
-// Create users table if it doesn't exist
-dbPdf.serialize(() => {
-  dbPdf.run(`CREATE TABLE IF NOT EXISTS pdfs (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    title TEXT NOT NULL,
-    slug TEXT UNIQUE NOT NULL,
-    filename TEXT NOT NULL,
-    uploaded_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    uploaded_by TEXT NOT NULL
-  )`);
-  dbPdf.run(`CREATE TABLE IF NOT EXISTS comments (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    pdf_id INTEGER NOT NULL,
-    user TEXT NOT NULL,
-    text TEXT NOT NULL,
-    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (pdf_id) REFERENCES pdfs(id)
-    )`);
-  dbPdf.run(`CREATE TABLE IF NOT EXISTS tags (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    name TEXT UNIQUE)`)
-  dbPdf.run(`CREATE TABLE IF NOT EXISTS  pdf_tags (
-    pdf_id INTEGER,
-    tag_id INTEGER,
-    PRIMARY KEY (pdf_id, tag_id),
-    FOREIGN KEY (pdf_id) REFERENCES pdfs(id),
-    FOREIGN KEY (tag_id) REFERENCES tags(id)
-    )`)
-  dbPdf.run(`CREATE TABLE IF NOT EXISTS jobs (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    username TEXT,
-    title TEXT,
-    description TEXT,
-    reqs TEXT,
-    contact TEXT, 
-    pdf TEXT, 
-    active BOOLEAN DEFAULT 1
-  )`);
-    dbPdf.run('PRAGMA foreign_keys = ON')
-});
+// // Database
+// const dbPdf = new sqlite3.Database('./db.sqlite')
+// // Create users table if it doesn't exist
+// dbPdf.serialize(() => {
+//   dbPdf.run(`CREATE TABLE IF NOT EXISTS pdfs (
+//     id INTEGER PRIMARY KEY AUTOINCREMENT,
+//     title TEXT NOT NULL,
+//     slug TEXT UNIQUE NOT NULL,
+//     filename TEXT NOT NULL,
+//     uploaded_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+//     uploaded_by TEXT NOT NULL
+//   )`);
+//   dbPdf.run(`CREATE TABLE IF NOT EXISTS comments (
+//     id INTEGER PRIMARY KEY AUTOINCREMENT,
+//     pdf_id INTEGER NOT NULL,
+//     user TEXT NOT NULL,
+//     text TEXT NOT NULL,
+//     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+//     FOREIGN KEY (pdf_id) REFERENCES pdfs(id)
+//     )`);
+//   dbPdf.run(`CREATE TABLE IF NOT EXISTS tags (
+//     id INTEGER PRIMARY KEY AUTOINCREMENT,
+//     name TEXT UNIQUE)`)
+//   dbPdf.run(`CREATE TABLE IF NOT EXISTS  pdf_tags (
+//     pdf_id INTEGER,
+//     tag_id INTEGER,
+//     PRIMARY KEY (pdf_id, tag_id),
+//     FOREIGN KEY (pdf_id) REFERENCES pdfs(id),
+//     FOREIGN KEY (tag_id) REFERENCES tags(id)
+//     )`)
+//   dbPdf.run(`CREATE TABLE IF NOT EXISTS jobs (
+//     id INTEGER PRIMARY KEY AUTOINCREMENT,
+//     username TEXT,
+//     title TEXT,
+//     description TEXT,
+//     reqs TEXT,
+//     contact TEXT, 
+//     pdf TEXT, 
+//     active BOOLEAN DEFAULT 1
+//   )`);
+//     dbPdf.run('PRAGMA foreign_keys = ON')
+// });
 
 
 // Route handling
@@ -768,6 +789,33 @@ app.delete('/jobs/:id', requireAuth, (req, res) => {
     })
 });
 
+
+/////// MESSAGING \\\\\\\\
+
+app.post('/messages/send', (req, res) => {
+  const { sender, recipient, message } = req.body;
+  db.run(
+    `INSERT INTO messages (sender, recipient, message) VALUES (?, ?, ?)`,
+    [sender, recipient, message],
+    function (err) {
+      if (err) return res.status(500).json({ error: err.message });
+      res.json({ success: true, id: this.lastID });
+    }
+  );
+});
+
+app.get('/messages/:user1/:user2', (req, res) => {
+  const { user1, user2 } = req.params;
+  db.all(`
+    SELECT * FROM messages
+    WHERE (sender = ? AND recipient = ?)
+       OR (sender = ? AND recipient = ?)
+    ORDER BY timestamp ASC
+  `, [user1, user2, user2, user1], (err, rows) => {
+    if (err) return res.status(500).json({ error: err.message });
+    res.json(rows);
+  });
+});
 
 
 

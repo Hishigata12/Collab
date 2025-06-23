@@ -7,57 +7,75 @@
     <link rel="stylesheet" href="/css/dashboard.css">
     <%- include('banner'); -%>
     <%- include('dash'); -%>
+    <%- include('message'); -%>
 </head>
 
 
 <body>
-
-    <h1>Dashboard for <%= username %></h1>
-    <h1> Welcome <%= username  %></h1>
-    <div id="form-div">
-        <form id="uploadForm" class="upload-form hidden" enctype="multipart/form-data">
-            <h2>Upload PDF</h2>
-            <input type="text" name="title" placeholder="Enter PDF Title" required />
-            <input type="file" name="pdf" accept="application/pdf" required />
-            <input type="text" name="tags" placeholder="Comma-separated tags"><br>
-            <button type="submit">Upload PDF</button>
-            <div class="upload-animation" id="uploadMessage">PDF uploaded successfully!</div>
-        </form>
-        <form id="jobForm" class="upload-form hidden" enctype="multipart/form-data">
-            <h2>Create Job Listing</h2>
-            <input type="text" name="title" placeholder="Job Listing Name" required />
-            <input type="text" name="desc" placeholder="Enter description" required />
-            <input type="text" name="reqs" placeholder="Enter requirements" />
-            <input type="text" name="contact" placeholder="Enter contact information" required />
-            <label for="pdf">Attach PDF</label>
-            <input type="file" name="pdf" accept="application/pdf">
-            
-            <button type="submit">Submit Job Listing</button>
-            <div class="upload-animation" id="uploadMessage2">Job listed successfully!</div>
-        </form>
+    <div class="title">
+        <h1>Dashboard for <%= username %></h1>
     </div>
-    <h2>Articles Published</h2>
-    <ul class="upload-list" id="pdf-list">
-        <% pdf.forEach(p => { %>
-            <li>
-                <a href="/pdf/<%= p.slug %>"><%= p.title %></a>
-                <button class="delete-btn-pdf" data-id="<%= p.id %>">🗑️ Delete</button>
-            </li>
-        <% }) %>
-    </ul>
-    <h2>Job Listings</h2>
-    <ul class="upload-list" id="job-postings">
-         <% jobs.forEach(j => { %>
-            <li>
-                <a href="/jobs/<%= j.id %>"><%= j.title %></a>
-                <button class="delete-btn-job" data-id="<%= j.id %>">🗑️ Delete</button>
-            </li>
-        <% }) %>
-    </ul>
+    
+    <div class="container">
+        <div class="half">
+            <div id="form-div">
+                <form id="uploadForm" class="upload-form hidden" enctype="multipart/form-data">
+                    <h2>Upload PDF</h2>
+                    <input type="text" name="title" placeholder="Enter PDF Title" required />
+                    <input type="file" name="pdf" accept="application/pdf" required />
+                    <input type="text" name="tags" placeholder="Comma-separated tags"><br>
+                    <button type="submit">Upload PDF</button>
+                    <div class="upload-animation" id="uploadMessage">PDF uploaded successfully!</div>
+                </form>
+                <form id="jobForm" class="upload-form hidden" enctype="multipart/form-data">
+                    <h2>Create Job Listing</h2>
+                    <input type="text" name="title" placeholder="Job Listing Name" required />
+                    <input type="text" name="desc" placeholder="Enter description" required />
+                    <input type="text" name="reqs" placeholder="Enter requirements" />
+                    <input type="text" name="contact" placeholder="Enter contact information" required />
+                    <label for="pdf">Attach PDF</label>
+                    <input type="file" name="pdf" accept="application/pdf">
+                    
+                    <button type="submit">Submit Job Listing</button>
+                    <div class="upload-animation" id="uploadMessage2">Job listed successfully!</div>
+                </form>
+            </div>
+            <h2>Articles Published</h2>
+            <ul class="upload-list" id="pdf-list">
+                <% pdf.forEach(p => { %>
+                    <li>
+                        <a href="/pdf/<%= p.slug %>"><%= p.title %></a>
+                        <button class="delete-btn-pdf" data-id="<%= p.id %>">🗑️ Delete</button>
+                    </li>
+                <% }) %>
+            </ul>
+            <h2>Job Listings</h2>
+            <ul class="upload-list" id="job-postings">
+                <% jobs.forEach(j => { %>
+                    <li>
+                        <a href="/jobs/<%= j.id %>"><%= j.title %></a>
+                        <button class="delete-btn-job" data-id="<%= j.id %>">🗑️ Delete</button>
+                    </li>
+                <% }) %>
+            </ul>
+        </div>
+        <div class="half">
+                <h2>right panel</h2>
+                <div class="main-container">
+                <div class="media-box">
+                    <h3>Featured Video</h3>
+                    <iframe src="https://www.youtube.com/embed/dQw4w9WgXcQ" allowfullscreen></iframe>
 
-    <form action="/logout" method="POST">
+                    <h3>Latest Image</h3>
+                    <img src="/images/launch2.jpg" width="400px" alt="Latest Image">
+                </div>
+                </div>
+        </div>
+    </div>
+
+    <!-- <form action="/logout" method="POST">
         <button type="submit">Logout</button>
-    </form>
+    </form> -->
     <!-- <script src="/js/dashboard.js"></script> -->
 </body>
 </html>

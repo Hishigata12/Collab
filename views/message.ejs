@@ -1,9 +1,72 @@
+<!-- index.html -->
 <!DOCTYPE html>
 <html>
-<head>
-  <title>Message</title>
-</head>
-<body>
-  <h1><%= message %></h1>
-</body>
+  <head>
+    <title>Chat</title>
+    <link rel="stylesheet" href="/css/message.css">
+  </head>
+  <body>
+    <ul id="messages"></ul>
+    <input id="messageInput" autocomplete="off" />
+    <button onclick="sendMessage()">Send</button>
+    <!-- Floating Chat UI -->
+  <div id="chat-container">
+    <div id="chat-header" onclick="toggleChat()">💬 Chat</div>
+    <div id="chat-body" class="hidden">
+      <div id="chat-messages"></div>
+      <input id="chat-to" placeholder="Recipient username" />
+      <input id="chat-input" placeholder="Type a message..." />
+      <button onclick="sendChatMessage()">Send</button>
+    </div>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io();
+    const messagesDiv = document.getElementById('chat-messages');
+
+    function toggleChat() {
+      document.getElementById('chat-body').classList.toggle('hidden');
+    }
+
+    function sendMessage(toUser, text) {
+      socket.emit('private message', {
+      to: toUser,
+      message: text
+      });
+    }
+
+    function sendChatMessage() {
+      const to = document.getElementById('chat-to').value.trim();
+      const text = document.getElementById('chat-input').value.trim();
+      if (to && text) {
+        socket.emit('private message', { to, message: text });
+        appendChatMessage('Me', text);
+        document.getElementById('chat-input').value = '';
+      } 
+    }
+
+    function appendChatMessage(from, message) {
+      const p = document.createElement('p');
+      p.innerHTML = `<strong>${from}:</strong> ${message}`;
+      messagesDiv.appendChild(p);
+      messagesDiv.scrollTop = messagesDiv.scrollHeight;
+    }
+
+    // Listen for private messages
+    socket.on('private message', ({ from, message }) => {
+      appendChatMessage(from, message);
+      console.log(`Message from ${from}: ${message}`);
+      // You can append this to a chat box
+    });
+
+    // Send a private message
+    function sendMessage(toUser, text) {
+      socket.emit('private message', {
+        to: toUser,
+        message: text
+      });
+    }
+  </script>
+  </body>
 </html>
