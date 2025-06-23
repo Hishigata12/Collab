@@ -75,7 +75,6 @@ if (fs.existsSync('pages.json')) {
 
 // Bcrypt for Routes and Authentication
 // const users = [];
-
 app.get('/register', (req, res) => {
   res.render('register');
 });
@@ -215,7 +214,7 @@ app.post('/login2', async (req, res) => {
     // res.redirect('/dashboard');
   });
 })
-
+//DON'T DELETE-- AUTO LOGIN FOR SITE DEVELOPMENT
 app.post('/login3', async (req, res) => { // THIS IS JUST FOR TROUBLESHOOTING
     // const { identifier, password } = req.body
     const identifier = 'Hishigata'
