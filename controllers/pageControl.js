@@ -1,6 +1,6 @@
-const path = require('path');
+// const path = require('path');
 const fs = require('fs');
-const {db, dbPdf } = require('./databases/db');
+const {db, dbPdf } = require('../databases/db');
 require("dotenv").config();
 const path = require('path');
 const bodyParser = require('body-parser');
@@ -10,7 +10,10 @@ const jwt = require('jsonwebtoken');
 const slugify = require('slugify');
 const session = require('express-session');
 const bcrypt = require('bcrypt');
-const multer = require('multer');
+
+
+//Import functions
+const { isStrongPassword } = require('../middleware/controlware')
 
 //General Site Page Controller functions
 

@@ -1,5 +1,5 @@
 const {Router} = require('express');
-const {route} = require('express/lib/application');
+// const {route} = require('express/lib/application');
 
 
 //Import all controller files
@@ -16,42 +16,41 @@ const routes = Router();
 
 //Users and authentication
 //guest user page
-route.get('/', auth.guest);
+routes.get('/', auth.guest);
 //new user
-route.get('/newuser', auth.newUser);
+routes.get('/newuser', auth.newUser);
 //user registration
-route.get('/register', auth.register);
-route.post('/register', auth.registerPassword);
+routes.get('/register', auth.register);
+routes.post('/register', auth.registerPassword);
 //user verification
-route.get('/verify/:token', auth.verifyUser);
-route.post('/reverify', auth.reverifyUser);
+routes.get('/verify/:token', auth.verifyUser);
+routes.post('/reverify', auth.reverifyUser);
 //user login
-route.get('/login', auth.login);
-route.post('/login', auth.loginMain);
-route.post('/login2', auth.loginIndexPg);
+routes.get('/login', auth.login);
+routes.post('/login', auth.loginMain);
+routes.post('/login2', auth.loginIndexPg);
 //user profile/dashboard page
-route.get('/dashboard', auth.dashboard);
+routes.get('/dashboard', requireAuth, auth.dashboard);
 //user logout  
-route.post('/logout', auth.logoutErr);
+routes.post('/logout', auth.logoutErr);
 
 //General page controls
-//search routing
-routes.post('/search', pg.searchGen);
-
-
-//comment routing
-//!! middleware required
-//routes.post ('/add-comment/:slug', requireAuth, pg.pdfComment);
+//dynamic page routing
+routes.get('/pages/:slug', pg.pageRoute);
 
 //Site storage controls
 //image storing
-//!!requires middleware
-//route.post('/upload-image', upload.single('image'), store.imgUpload);
-//pdf storing
-//!!two middleware
-//route.post('/upload-pdf', requireAuth, uploadPdf.single('pdf'), store.pdfUpload);)
-//user deletion of file(s)
-routes.delete('/pdf/:id', store.deletePdf);
+// requires middleware
+// Authentication middleware
+function requireAuth(req, res, next) {
+    if (req.session.user) {
+    next()
+    } else {
+    res.redirect('/login')
+    }
+}
+//route.post('/upload-image', store.imgUpload);
 
 //End of indexRoutes.js
 module.exports = routes;
+

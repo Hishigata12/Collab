@@ -1,6 +1,6 @@
-const path = require('path');
+// const path = require('path');
 const fs = require('fs');
-const {db, dbPdf } = require('./databases/db');
+const {db, dbPdf } = require('../databases/db');
 require("dotenv").config();
 const path = require('path');
 const bodyParser = require('body-parser');
@@ -10,49 +10,9 @@ const jwt = require('jsonwebtoken');
 const slugify = require('slugify');
 const session = require('express-session');
 const bcrypt = require('bcrypt');
-const multer = require('multer');
 
-
-// Password Generation
-function isStrongPassword(pw) {
-return pw.length >= 8 &&
-/[a-z]/.test(pw) &&
-/[A-Z]/.test(pw) &&
-/\d/.test(pw);
-}
-
-//!!REMOVE-middleware will be kept separate folder
-// Authentication middleware
-function requireAuth(req, res, next) {
-if (req.session.user) {
-next()
-} else {
-res.redirect('/login')
-}
-}
-//REMOVE-redundant from storage controller
-// Storage
-const imageStorage = multer.diskStorage({
-destination: './public/images',
-filename: (req, file, cb) => {
-cb(null, Date.now() + path.extname(file.originalname))
-}
-})
-
-const upload = multer({ imageStorage })
-
-const pdfStorage = multer.diskStorage({
-destination: './public/pdfs',
-// destination: function (req, file, cb) {
-// cb(null, path.join(__dirname, 'public/pdf')); // Ensure this path exists!
-// },
-filename: function (req, file, cb) {
-const uniqueName = Date.now() + '-' + file.originalname;
-cb(null, uniqueName);
-}
-});
-
-const uploadPdf = multer({ storage: pdfStorage });
+//Import functions
+const { isStrongPassword } = require('../middleware/controlware')
 
 
 //Authentication Controller functions
