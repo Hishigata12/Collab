@@ -9,6 +9,11 @@ const nodemailer = require('nodemailer');
 const jwt = require('jsonwebtoken');
 const slugify = require('slugify');
 const session = require('express-session');
+const bcrypt = require('bcrypt');
+const multer = require('multer');
+//checking for use in middleware
+const express = require('express');
+const app = express();
 
 // Password Generation
 function isStrongPassword(pw) {
@@ -26,7 +31,7 @@ next()
 res.redirect('/login')
 }
 }
-
+//REMOVE-redundant from storage controller
 // Storage
 const imageStorage = multer.diskStorage({
 destination: './public/images',
@@ -52,6 +57,17 @@ const uploadPdf = multer({ storage: pdfStorage });
 
 
 //Authentication Controller functions
+
+//guest user page
+exports.guest =(req, res) => {
+    const username = req.session.user ? req.session.user.username : 'Guest';
+    res.render('index', { username })
+};
+
+//new user
+exports.newUser =(req, res) => {
+    res.render('newuser')
+};
 
 //register user
 exports.register = (req, res) => {
