@@ -86,8 +86,6 @@ exports.pdfUpload = (req, res) => {
     });
 };
 
-//??? what is slug- Handling PDF display pgs
-
 
 //user deletes file(s)
 exports.deletePdf = (req, res) => {

@@ -1,4 +1,6 @@
 const {Router} = require('express');
+const {upload, uploadPdf} = require('../middleware/multerware')
+const { requireAuth } = require('../middleware/middleware.js')
 // const {route} = require('express/lib/application');
 
 
@@ -7,9 +9,7 @@ const auth = require('../controllers/authControl.js');
 const pg = require('../controllers/pageControl.js');
 const store = require('../controllers/storageControl.js');
 
-//!!Import all middleware files
-
-//Index routes 
+//Index routes
 const routes = Router();
 
 //Defined routes
@@ -31,25 +31,29 @@ routes.post('/login', auth.loginMain);
 routes.post('/login2', auth.loginIndexPg);
 //user profile/dashboard page
 routes.get('/dashboard', requireAuth, auth.dashboard);
-//user logout  
+//user logout
 routes.post('/logout', auth.logoutErr);
 
 //General page controls
-//dynamic page routing
-routes.get('/pages/:slug', pg.pageRoute);
+//dynamic page routing?
+//routes.get('/pages/:slug', pg.pageRoute);
+//display pdf
+routes.get('/pages/:slug', pg.displayPdf);
+//display random pdf
+routes.get('/random', pg.randPdf);
+//search routing
+routes.post('/search', pg.searchGen);
+//comment routing
+routes.post ('/add-comment/:slug', requireAuth, pg.pdfComment);
 
 //Site storage controls
 //image storing
-// requires middleware
-// Authentication middleware
-function requireAuth(req, res, next) {
-    if (req.session.user) {
-    next()
-    } else {
-    res.redirect('/login')
-    }
-}
-//route.post('/upload-image', store.imgUpload);
+routes.post('/upload-image', upload.single('image'), store.imgUpload);
+//pdf storing
+routes.post('/upload-pdf', requireAuth, uploadPdf.single('pdf'), store.pdfUpload);
+//user deletion of file(s)
+routes.delete('/pdf/:id', store.deletePdf);
+
 
 //End of indexRoutes.js
 module.exports = routes;

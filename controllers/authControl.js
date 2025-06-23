@@ -10,7 +10,6 @@ const jwt = require('jsonwebtoken');
 const slugify = require('slugify');
 const session = require('express-session');
 const bcrypt = require('bcrypt');
-
 //Import functions
 const { isStrongPassword } = require('../middleware/controlware')
 

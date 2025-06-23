@@ -10,12 +10,85 @@ const jwt = require('jsonwebtoken');
 const slugify = require('slugify');
 const session = require('express-session');
 const bcrypt = require('bcrypt');
-
-
 //Import functions
 const { isStrongPassword } = require('../middleware/controlware')
 
 //General Site Page Controller functions
+//pdf display with slug
+exports.displayPdf = (req, res) => {
+  const slug = req.params.slug;
+//   let comments = [
+//     {
+//     user: "black boy",
+//     text: "I like icecream"
+//   },
+//   {
+//     user: "white girl",
+//     text: "I like whiteclaws"
+//   }
+//   ]
+  
+    dbPdf.get('SELECT * FROM pdfs WHERE slug = ?', [slug], (err, pdf) => {
+    if (err || !pdf) return res.status(404).send('PDF not found');
+        dbPdf.all(`SELECT * FROM comments WHERE pdf_id = ?`, [pdf.id], (err, comments) => {
+            if (err) {
+                console.error(err)
+                return res.send('error loading comments')
+            }
+            if (!comments) {
+                let comments = [
+                    {
+                        user: "The Warden",
+                        text: "No comments yet"
+                    }
+                ]
+            } else {
+            dbPdf.all('SELECT * FROM pdfs WHERE slug != ? LIMIT 10', [slug], (err2, related) => {
+        // console.log(related)
+        console.log(pdf.id)
+        // dbPdf.all(`
+        //     SELECT * FROM pdf_tags WHERE pdf_id = ?`,[pdf.id], (err, tagNums) => {
+        //         console.log(tagNums)
+        //         tagNames = tagNums
+        //         res.render('projects', { pdf, related, comments, tagNames });
+        //     })
+                dbPdf.all(`
+                    SELECT tags.name FROM tags JOIN pdf_tags ON tags.id = pdf_tags.tag_id
+                    WHERE pdf_tags.pdf_id = ?`, [pdf.id], (err, rows) => {
+                        if (err) return console.error('Error fetching tags:', err.message)
+                        const tagNames = rows.map(row => row.name) 
+                    console.log(tagNames)
+                    res.render('projects', { pdf, related, comments, tagNames });
+                    })
+      
+            
+      })
+    }
+    });
+  });
+};
+//display random pdf
+exports.randPdf = (req, res) => {
+  dbPdf.get('SELECT MAX(id) AS maxID FROM pdfs', (err, row) => {
+    if (err) return console.error(err.message)
+    const max = row.maxID
+    function tryRandom() {
+      const myInt = Math.floor(Math.random() * (max)) + 1;
+      console.log(myInt)
+      dbPdf.get('SELECT * FROM pdfs WHERE id = ?', [myInt], (err, row2) => {
+        if (err) return console.err(err.message)
+          
+        if (row2) {
+          console.log(row2)
+          res.redirect(`/pdf/${row2.slug}`)
+        } else {
+          tryRandom()   
+        }
+      })
+    }
+    tryRandom()
+  })
+};
 
 //query controls (consider separate controller file if building out this functionality)
 exports.searchGen = (req, res) => {
@@ -46,8 +119,6 @@ dbPdf.all(`
     res.json(rows)
   });
 };
-// search limits
-
 
 //comment controls (consider separate controller for advanced commenting features)
 exports.pdfComment = (req, res) => {
