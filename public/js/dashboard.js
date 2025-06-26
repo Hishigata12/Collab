@@ -1,9 +1,13 @@
 document.addEventListener("DOMContentLoaded", () => {
 let form = document.getElementById("uploadForm");
 let uploadMessage = document.getElementById("uploadMessage");
-let uploadMessage2 = document.getElementById("uploadMessage");
+let uploadMessage2 = document.getElementById("uploadMessage2");
+let uploadMessage3 = document.getElementById("uploadMessage3");
 let pdfList = document.getElementById('pdf-list')
 let jobForm = document.getElementById("jobForm")
+const editPdf = document.getElementById("edit-pdf-form")
+
+let editPdfID = []
 
 form.addEventListener("submit", async (e) => {
   e.preventDefault();
@@ -77,7 +81,7 @@ jobForm.addEventListener("submit", async (e) => {
 
     // Hide message after 3 seconds
     setTimeout(() => {
-      uploadMessage.style.display = "none";
+      uploadMessage2.style.display = "none";
     }, 3000);
   } catch (err) {
     console.error("Upload error:", err)
@@ -88,8 +92,33 @@ jobForm.addEventListener("submit", async (e) => {
   }
 })
 
+editPdf.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const formData = new FormData(editPdf)
+  
+  try {
+    const res = await fetch(`/pdf/edit/${editPdfID}`, {
+      method: "POST",
+      body: formData,
+    })
+    const result = await res.json();
+    uploadMessage3.textContent = "Study modified successfully!"
+    uploadMessage3.style.display = "block";
+
+
+    setTimeout(() => {
+      uploadMessage3.style.display = "none";
+    }, 3000);
+  } catch (err) {
+  editPdf.reset()
+   console.error("Upload error:", err)
+    uploadMessage2.textContent = "An error occurred.";
+    uploadMessage2.style.display = "block";
+  }
+})
 
 document.querySelectorAll('.delete-btn-pdf').forEach(button => {
+  button.classList.add('transparent')
   button.addEventListener('click', async (e) => {
   const pdfId = button.dataset.id;
   console.log(pdfId)
@@ -97,7 +126,7 @@ document.querySelectorAll('.delete-btn-pdf').forEach(button => {
 
   try {
     
-    const res = await fetch(`/pdf/${pdfId}`, {
+    const res = await fetch(`/pdf/delete/${pdfId}`, {
       method: 'DELETE',
     });
 
@@ -124,7 +153,7 @@ document.querySelectorAll('.delete-btn-job').forEach(button => {
 
   try {
     
-    const res = await fetch(`/jobs/${jobID}`, {
+    const res = await fetch(`/jobs/delete/${jobID}`, {
       method: 'DELETE',
     });
 
@@ -142,6 +171,30 @@ document.querySelectorAll('.delete-btn-job').forEach(button => {
     }
   });
 });
+
+document.querySelectorAll('.edit-btn-pdf').forEach(button => {
+  button.addEventListener('click', async (e) => {
+
+  editPdfID = button.dataset.id;
+  console.log(editPdfID)
+
+  const formDiv = document.getElementById('form-div')
+  if (!form.classList.contains('hidden')) form.classList.toggle('hidden')
+  if (!jobForm.classList.contains('hidden')) jobForm.classList.toggle('hidden')
+  if (editPdf.classList.contains('hidden')) editPdf.classList.toggle('hidden')
+
+  });
+});
+
+const textarea = document.getElementById("study-desc");
+const charCount = document.getElementById("char-count");
+const maxLength = textarea.getAttribute("maxlength");
+
+textarea.addEventListener("input", () => {
+  const remaining = maxLength - textarea.value.length;
+  charCount.textContent = `${remaining} characters remaining`;
+});
+
 })
 
 
@@ -159,6 +212,7 @@ function toggleForm(formId) {
         postForm.classList.add('hidden');
     }
 }
+
 
 
 

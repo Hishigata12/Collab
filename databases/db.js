@@ -3,13 +3,13 @@ const path = require('path');
 
 let db = new sqlite3.Database('./users.db');
 // Create users table if it doesn't exist
-db.serialize(() => {
-//   db.run(`CREATE TABLE IF NOT EXISTS users (
-//     id INTEGER PRIMARY KEY AUTOINCREMENT,
-//     username TEXT UNIQUE,
-//     password TEXT,
-//     email TEXT UNIQUE, 
-//     verified INTEGER DEFAULT 0
+// db.serialize(() => {
+  // db.run(`CREATE TABLE IF NOT EXISTS users (
+  //   id INTEGER PRIMARY KEY AUTOINCREMENT,
+  //   username TEXT UNIQUE,
+  //   password TEXT,
+  //   email TEXT UNIQUE, 
+  //   verified INTEGER DEFAULT 0
 //   )`);
 //   db.run(`CREATE TABLE IF NOT EXISTS msgs (
 //   id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -18,7 +18,7 @@ db.serialize(() => {
 //   message TEXT NOT NULL,
 //   timestamp DATETIME DEFAULT CURRENT_TIMESTAMP
 // );`)
-});
+// });
 
 // Database
 const dbPdf = new sqlite3.Database('./db.sqlite')
@@ -26,13 +26,19 @@ const dbPdf = new sqlite3.Database('./db.sqlite')
 // dbPdf.serialize(() => {
 //   dbPdf.run(`CREATE TABLE IF NOT EXISTS pdfs (
 //     id INTEGER PRIMARY KEY AUTOINCREMENT,
-//     title TEXT NOT NULL,
+//     title TEXT NOT NULL CHECK (length(title) < 128),
 //     slug TEXT UNIQUE NOT NULL,
-//     filename TEXT NOT NULL,
+//     filename TEXT NOT NULL CHECK (length(filename) < 128),
 //     uploaded_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-//     uploaded_by TEXT NOT NULL
-//   )`);
-//   dbPdf.run(`CREATE TABLE IF NOT EXISTS comments (
+//     uploaded_by TEXT NOT NULL,
+//     authors TEXT CHECK (length(authors) < 256),
+//     unis TEXT CHECK (length(unis) < 256),
+//     description TEXT CHECK (length(description) < 512)
+//   )`, (err) => {
+//       if (err) console.error("Error adding Table:", err.message)
+//       else console.log('Made Table successfully')
+//     })
+  // dbPdf.run(`CREATE TABLE IF NOT EXISTS comments (
 //     id INTEGER PRIMARY KEY AUTOINCREMENT,
 //     pdf_id INTEGER NOT NULL,
 //     user TEXT NOT NULL,
@@ -63,4 +69,8 @@ const dbPdf = new sqlite3.Database('./db.sqlite')
 //     dbPdf.run('PRAGMA foreign_keys = ON')
 // });
 
+// dbPdf.run('DROP TABLE IF EXISTS pdfs', (err) => {
+//   if (err) console.error('Failed to delete table', err.message)
+//   else console.log('Table Deleted')
+// })
 module.exports = { db, dbPdf }

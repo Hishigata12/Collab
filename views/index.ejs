@@ -4,45 +4,68 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
+  <%- include('banner'); -%>
    <div class="auth-box">
       <h1> &infin; Welcome to Collab, <%= username  %>! &infin;</h1>
     <form action="/login2" method="POST">
         <div id="login-box">
             <input type="text" name="identifier" placeholder="Username or Email" required>
             <input type="password" name="password" placeholder="Password" required>
-        </div>
+        
       <button class='auth-btn' type="submit">Login</button>
+      </div>
     </form>
     <form action="/login3" method="POST">
       <button class='auth-btn' type="submit">AutoLogin</button>
     </form>
     <a href="/register"><button class="auth-btn">Register</button></a>
     <form action="/logout" method="POST">
-        <button type="submit">Logout</button>
+        <button class="auth-btn" type="submit">Logout</button>
     </form>
   </div>
   <title>Your Site - Home</title>
   <link rel="stylesheet" href="css/main.css">
-  <%- include('banner'); -%>
+  
 </head>
 
 
 <body>
-  <div class="search-container">
+ 
+  
+<div class="main-container">
+  <div class="news-box index-box">
+    <h3>Latest News</h3>
+    <ul>
+      <li>Company was formed by Chet Preston and Ashley Thrower in the state of Arizona</li>
+  </div>
+  
+  <div class="media-box index-box">
+    <div class="video-box">
+      <h3>Featured Video</h3>
+      <p>Here is a video of a guy singing a classic song</p>
+      <iframe id='featured-video' src="https://www.youtube.com/embed/dQw4w9WgXcQ" allowfullscreen></iframe>
+    </div>
+    <div class="image-box">
+      <h3>Latest Image</h3>
+      <p>Yes, all wood ducks can fly and play rocket guitars</p>
+      <img id='featured-image' src="/images/launch2.jpg" max-width="400px" alt="Latest Image">
+    </div>
+  </div>
+  <div class="search-container index-box">
+    <h3>Search Results</h3>
     <ul id="search-results">
 
     </ul>
   </div>
-<div class="main-container">
-  <div class="media-box">
-    <h3>Featured Video</h3>
-    <iframe src="https://www.youtube.com/embed/dQw4w9WgXcQ" allowfullscreen></iframe>
-
-    <h3>Latest Image</h3>
-    <img src="/images/launch2.jpg" width="400px" alt="Latest Image">
-  </div>
 </div>
+<%- include('message') -%>
 <script src="/js/main.js"></script>
+<!-- <script src="/node_modules/socket.io/client-dist/socket.io.min.js"></script> -->
+ <!-- <script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script> -->
+<!-- <script>
+  const socket = io()
+</script> -->
+
+
 </body>
 </html>

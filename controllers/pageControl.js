@@ -11,23 +11,12 @@ const slugify = require('slugify');
 const session = require('express-session');
 const bcrypt = require('bcrypt');
 //Import functions
-const { isStrongPassword } = require('../middleware/controlware')
+const { isStrongPassword, transporter } = require('../middleware/controlware')
 
 //General Site Page Controller functions
 //pdf display with slug
 exports.displayPdf = (req, res) => {
-  const slug = req.params.slug;
-//   let comments = [
-//     {
-//     user: "black boy",
-//     text: "I like icecream"
-//   },
-//   {
-//     user: "white girl",
-//     text: "I like whiteclaws"
-//   }
-//   ]
-  
+  const slug = req.params.slug;  
     dbPdf.get('SELECT * FROM pdfs WHERE slug = ?', [slug], (err, pdf) => {
     if (err || !pdf) return res.status(404).send('PDF not found');
         dbPdf.all(`SELECT * FROM comments WHERE pdf_id = ?`, [pdf.id], (err, comments) => {
@@ -46,20 +35,14 @@ exports.displayPdf = (req, res) => {
             dbPdf.all('SELECT * FROM pdfs WHERE slug != ? LIMIT 10', [slug], (err2, related) => {
         // console.log(related)
         console.log(pdf.id)
-        // dbPdf.all(`
-        //     SELECT * FROM pdf_tags WHERE pdf_id = ?`,[pdf.id], (err, tagNums) => {
-        //         console.log(tagNums)
-        //         tagNames = tagNums
-        //         res.render('projects', { pdf, related, comments, tagNames });
-        //     })
-                dbPdf.all(`
-                    SELECT tags.name FROM tags JOIN pdf_tags ON tags.id = pdf_tags.tag_id
-                    WHERE pdf_tags.pdf_id = ?`, [pdf.id], (err, rows) => {
-                        if (err) return console.error('Error fetching tags:', err.message)
-                        const tagNames = rows.map(row => row.name) 
-                    console.log(tagNames)
-                    res.render('projects', { pdf, related, comments, tagNames });
-                    })
+          dbPdf.all(`
+              SELECT tags.name FROM tags JOIN pdf_tags ON tags.id = pdf_tags.tag_id
+              WHERE pdf_tags.pdf_id = ?`, [pdf.id], (err, rows) => {
+                  if (err) return console.error('Error fetching tags:', err.message)
+                  const tagNames = rows.map(row => row.name) 
+              console.log(tagNames)
+              res.render('projects', { pdf, related, comments, tagNames });
+              })
       
             
       })

@@ -1,3 +1,7 @@
+
+require("dotenv").config()
+nodemailer = require('nodemailer')
+
 function isStrongPassword(pw) {
     return pw.length >= 8 &&
     /[a-z]/.test(pw) &&
@@ -5,4 +9,12 @@ function isStrongPassword(pw) {
     /\d/.test(pw);
 }
 
-module.exports = { isStrongPassword }
+const transporter = nodemailer.createTransport({
+  service: 'gmail', // or use SMTP for better control
+  auth: {
+    user: process.env.EMAIL,
+    pass: process.env.EMAILPW
+  }
+});
+
+module.exports = { isStrongPassword, transporter }

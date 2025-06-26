@@ -52,7 +52,8 @@ routes.post('/upload-image', upload.single('image'), store.imgUpload);
 //pdf storing
 routes.post('/upload-pdf', requireAuth, uploadPdf.single('pdf'), store.pdfUpload);
 //user deletion of file(s)
-routes.delete('/pdf/:id', store.deletePdf);
+routes.delete('/pdf/delete/:id', requireAuth, store.deletePdf);
+routes.post('/pdf/edit/:id', requireAuth, uploadPdf.single('pdf'), store.editPdf)
 
 
 //End of indexRoutes.js

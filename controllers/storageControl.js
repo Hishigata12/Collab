@@ -11,7 +11,7 @@ const slugify = require('slugify');
 const session = require('express-session');
 const bcrypt = require('bcrypt');
 //Import functions
-const { isStrongPassword } = require('../middleware/controlware')
+const { isStrongPassword, transporter } = require('../middleware/controlware')
 
 //Site Storage Controller functions
 //image upload and verify
@@ -37,22 +37,20 @@ exports.imgUpload = (req, res) => {
 
 //PDF upload and verify
 exports.pdfUpload = (req, res) => {
-    if (!req.file) {
+if (!req.file) {
         return res.status(400).send('No file uploaded. Check multer.')
     }
-  const { title, tags } = req.body;
+  const { title, tags, authors, description, unis } = req.body;
   tagList = tags.split(',').map(tag => tag.trim().toLowerCase()).filter(tag => tag.length > 0)
+  authorList = authors.split(',').map(author => author.trim().toLowerCase()).filter(author => author.length > 0)
+  uniList = unis.split(',').map(uni => uni.trim().toLowerCase()).filter(uni => uni.length > 0)
 //   console.log(tagList)
   const slug = slugify(title, { lower: true, strict: true });
 //   console.log(req.file)
   const filename = req.file.filename; //req.file.originalname
-//   console.log(title)
-//   console.log(filename)
-//   console.log(req.session.user.username)
-
   dbPdf.run(
-    'INSERT INTO pdfs (title, slug, filename, uploaded_by) VALUES (?, ?, ?, ?)',
-    [title, slug, filename, req.session.user.username],
+    'INSERT INTO pdfs (title, slug, filename, uploaded_by, description, authors, unis) VALUES (?, ?, ?, ?, ?, ?, ?)',
+    [title, slug, filename, req.session.user.username, description, authorList, uniList],
     function (err) {
       if (err) {
         console.error(err);
@@ -128,3 +126,40 @@ exports.deletePdf = (req, res) => {
     })
 };
 
+exports.editPdf = (req, res) => {
+        const pdfId = req.params.id;
+        console.log(`ID = ${pdfId}`)
+  // Optionally check that the current user owns the file
+         dbPdf.get(`SELECT * FROM pdfs WHERE id = ?`, [pdfId], (err, row) => {
+        if (err) return console.error(err.message)
+        console.log(row)
+        if (row.uploaded_by !== req.session.user.username || row.uploaded_by !== process.env.ADMIN) {
+            return res.status(403).send('Forbidden');
+        }
+      
+        const { description } = req.body;
+        // if (req.file) { const filename = req.file.filename}
+        console.log(`description ${description}`)
+        if (description) {
+            dbPdf.run(`
+            UPDATE pdfs SET description = ? WHERE id = ?`, [description, pdfId], function (err) {
+                if (err) {
+                console.error("Database update error:", err.message);
+                return res.status(500).json({ success: false, error: err.message });
+                }
+            })
+        }
+        if (req.file) {
+            const filename = req.file.filename
+            console.log(filename)
+                dbPdf.run(`
+                UPDATE pdfs SET filename = ? WHERE id = ?`, [filename, pdfId], function (err) {
+                if (err) {
+                console.error("Database update error:", err.message);
+                return res.status(500).json({ success: false, error: err.message });
+                }
+            })
+        }
+      })
+
+}

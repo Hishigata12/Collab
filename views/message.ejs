@@ -6,34 +6,58 @@
     <link rel="stylesheet" href="/css/message.css">
   </head>
   <body>
-    <ul id="messages"></ul>
+    <!-- <ul id="messages"></ul>
     <input id="messageInput" autocomplete="off" />
-    <button onclick="sendMessage()">Send</button>
+    <button onclick="sendMessage()">Send</button> -->
     <!-- Floating Chat UI -->
-  <div id="chat-container">
+  <!-- <div id="chat-container">
     <div id="chat-header" onclick="toggleChat()">💬 Chat</div>
     <div id="chat-body" class="hidden">
       <div id="chat-messages"></div>
       <input id="chat-to" placeholder="Recipient username" />
-      <input id="chat-input" placeholder="Type a message..." />
-      <button onclick="sendChatMessage()">Send</button>
+      <input id="chat-input" autocomplete='off' placeholder="Type a message..." />
+      <button id="send-msg">Send</button>
+    </div>
+  </div> -->
+  
+<div id="chat-widget">
+  <div class="chat-header" onclick="toggleChat2()">
+    <span>Messages</span>
+    <button id="new-chat-toggle" onclick="toggleChat()" hidden>New Chat</button>
+  </div>
+  <div id="chat-body" class="chat-body hidden">
+    <div id="chat-window">
+      <div id="chat-partner">Send to...</div>
+      <div id="chat-messages"></div>
+      <textarea id="chat-input" type="text" placeholder="Type a message..."></textarea>
+    </div>
+    <div id="new-chat-box" class="scrollable-siderbar">
+      <div id="conversation-list"></div>
+      <input id="new-chat-user" type="text" placeholder="Enter username..." />
+      <button id="start-chat-btn">Start</button>
     </div>
   </div>
+</div>
 
-  <script src="/socket.io/socket.io.js"></script>
-  <script>
+
+  <!-- <script src="/node_modules/socket.io/client-dist/socket.io.min.js"></script> -->
+  <script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
+  <script src='/js/message.js'></script>
+  <!-- <script>
     const socket = io();
+
+    const sendMsg = document.getElementById('send-msg')
+
+    sendMsg.addEventListener('click', function() {
+      const to = document.getElementById('chat-to')
+      const message = document.getElementById('chat-input')
+      sendMessage(to.value, message.value)
+    })
+    
     const messagesDiv = document.getElementById('chat-messages');
 
     function toggleChat() {
       document.getElementById('chat-body').classList.toggle('hidden');
-    }
-
-    function sendMessage(toUser, text) {
-      socket.emit('private message', {
-      to: toUser,
-      message: text
-      });
     }
 
     function sendChatMessage() {
@@ -56,7 +80,7 @@
     // Listen for private messages
     socket.on('private message', ({ from, message }) => {
       appendChatMessage(from, message);
-      console.log(`Message from ${from}: ${message}`);
+      // console.log(`Message from ${from}: ${message}`);
       // You can append this to a chat box
     });
 
@@ -67,6 +91,6 @@
         message: text
       });
     }
-  </script>
+  // </script> -->
   </body>
 </html>

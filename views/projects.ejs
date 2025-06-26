@@ -24,6 +24,9 @@
         </p>
       </div>
       <h3>Uploaded by <%= pdf.uploaded_by %></h3>
+      <div id="pdf-description">
+        <p><%= pdf.description %></p>
+      </div>
       <section class="comments">
         <h2>Comments</h2>
         <form id="comment-form" method="POST" action="/add-comment/<%= pdf.slug %>">
@@ -48,5 +51,6 @@
     </aside>
   </div>
   <script src="/js/projects.js"></script>
+  <%- include('message') -%>
 </body>
 </html>

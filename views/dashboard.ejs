@@ -7,7 +7,6 @@
     <link rel="stylesheet" href="/css/dashboard.css">
     <%- include('banner'); -%>
     <%- include('dash'); -%>
-    <%- include('message'); -%>
 </head>
 
 
@@ -21,10 +20,15 @@
             <div id="form-div">
                 <form id="uploadForm" class="upload-form hidden" enctype="multipart/form-data">
                     <h2>Upload PDF</h2>
-                    <input type="text" name="title" placeholder="Enter PDF Title" required />
+                    <input type="text" name="title" placeholder="Enter Manuscript Title" required />
                     <input type="file" name="pdf" accept="application/pdf" required />
-                    <input type="text" name="tags" placeholder="Comma-separated tags"><br>
-                    <button type="submit">Upload PDF</button>
+                    <input type="text" name="authors" placeholder="Comma-separated Authors" required />
+                    <input type="text" name="unis" placeholder="Comma-separated Universities" />
+                    <textarea name="description" id="study-desc" rows="5"
+                          maxlength="512" placeholder="Study Description"></textarea>
+                    <div id="char-count">512 characters remaining</div>
+                    <input type="text" name="tags" placeholder="Comma-separated tags, 8 max"><br>
+                    <button type="submit">Publish</button>
                     <div class="upload-animation" id="uploadMessage">PDF uploaded successfully!</div>
                 </form>
                 <form id="jobForm" class="upload-form hidden" enctype="multipart/form-data">
@@ -39,13 +43,21 @@
                     <button type="submit">Submit Job Listing</button>
                     <div class="upload-animation" id="uploadMessage2">Job listed successfully!</div>
                 </form>
+                <form id="edit-pdf-form" class="upload-form hidden" enctype="multipart/form-data">
+                    <textarea name="description" id="study-desc" rows="5"
+                          maxlength="512" placeholder="Study Description"></textarea>
+                    <input type="file" name="pdf" accept="application/pdf"/>
+                    <button type="submit">Publish Edits</button>
+                    <div class="upload-animation" id="uploadMessage">Edits processed successfully!</div>
+                </form>
             </div>
             <h2>Articles Published</h2>
             <ul class="upload-list" id="pdf-list">
                 <% pdf.forEach(p => { %>
                     <li>
                         <a href="/pdf/<%= p.slug %>"><%= p.title %></a>
-                        <button class="delete-btn-pdf" data-id="<%= p.id %>">🗑️ Delete</button>
+                        <button class="edit-btn-pdf" data-id="<%= p.id %>">&#9881; </button>
+                        <button class="delete-btn-pdf" data-id="<%= p.id %>">🗑️ </button>
                     </li>
                 <% }) %>
             </ul>
@@ -54,7 +66,7 @@
                 <% jobs.forEach(j => { %>
                     <li>
                         <a href="/jobs/<%= j.id %>"><%= j.title %></a>
-                        <button class="delete-btn-job" data-id="<%= j.id %>">🗑️ Delete</button>
+                        <button class="delete-btn-job transparent" data-id="<%= j.id %>">🗑️ </button>
                     </li>
                 <% }) %>
             </ul>
@@ -77,5 +89,6 @@
         <button type="submit">Logout</button>
     </form> -->
     <!-- <script src="/js/dashboard.js"></script> -->
+     <%- include('message'); -%>
 </body>
 </html>

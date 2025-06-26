@@ -12,11 +12,13 @@ const {upload, uploadPdf} = require('./middleware/multerware')
 const session = require('express-session')
 const bcrypt = require('bcrypt')
 const sqlite3 = require('sqlite3').verbose()
+const SQLiteStore = require('connect-sqlite3')(session)
 const crypto = require('crypto')
 const nodemailer = require('nodemailer')
 const jwt = require('jsonwebtoken')
 const slugify = require('slugify')
 const { Server } = require('socket.io')
+const cron = require('node-cron')
 // const { spawn } = require('child_process');
 // const { exec } = require('child_process')
 // const {parse} = require('csv-parse');
@@ -29,20 +31,29 @@ const { db, dbPdf } = require('./databases/db')
 const sharedSession = require('express-socket.io-session');
 const routes = require('./routes/indexRoutes')
 const { requireAuth } = require('./middleware/middleware')
-const { isStrongPassword } = require('./middleware/controlware')
+const { isStrongPassword, transporter } = require('./middleware/controlware')
 
 
 app.use(express.json());
 app.use(cors());
 app.use(express.static(path.join(__dirname, 'public/')))
 app.use(express.urlencoded({extended: false}))
-app.use(session({
-    secret: 'mySecretKey',
-    resave: false,
-    saveUninitialized: false,
-    cookie: { secure: false }
-}))
+// app.use(session({
+//     secret: 'mySecretKey',
+//     resave: false,
+//     saveUninitialized: false,
+//     cookie: { secure: false }
+// }))
 app.use(bodyParser.urlencoded({ extended: true }))
+
+const sessionMiddleware = session({
+  secret: 'mySecretKey',
+  resave: false,
+  saveUninitialized: false,
+  store: new SQLiteStore(), // Use the same store in both Express and Socket.IO
+});
+
+app.use(sessionMiddleware);
 
 // app.use(cookieParser());
 
@@ -54,32 +65,97 @@ app.use(routes)
 const server = http.createServer(app)
 const io = new Server(server)
 
-jwtSecret = process.env.secretKey
-BASE_URL = process.env.BASE_URL
+io.use(sharedSession(sessionMiddleware, {
+  autoSave: true,
+}));
 
-const transporter = nodemailer.createTransport({
-  service: 'gmail', // or use SMTP for better control
-  auth: {
-    user: process.env.EMAIL,
-    pass: process.env.EMAILPW
-  }
-});
+// io.on('connection', (socket) => {
+//   socket.on('chat message', (msg) => {
+//     console.log('message: ' + msg);
+//   });
+// });
 
 // Listen for connections
 io.on('connection', (socket) => {
-  const username = socket.handshake.session.user?.username
-  if (!username) return
+  const user = socket.handshake.session.user;
+  // console.log(user)
+  if (user === undefined) {
+    return socket.disconnect()
+  } 
+  const username = user.username;
+  
+  // console.log("User from session:", username);
+    db.all(
+    `SELECT DISTINCT CASE 
+       WHEN sender = ? THEN recipient 
+       ELSE sender 
+     END AS user 
+     FROM msgs WHERE sender = ? OR recipient = ?`,
+    [username, username, username],
+    (err, rows) => {
+      if (!err) {
+        const users = rows.map(r => r.user);
+        socket.emit('convo-list', users);
+      }
+    }
+  );
+  
+  if (username === 'Guest') {
+    socket.disconnect()
+    return console.log('sign in please')
+  }
   console.log(`User ${username} has connected`);
 
   // Join a room named after the user for direct messaging
   socket.join(username);
 
-  socket.on('private message', ({ to, message }) => {
-    io.to(to).emit('private message', {
-      from: username,
-      message
+  socket.on('private-message', ({ to, message }) => {
+ 
+    db.run(`
+      INSERT INTO msgs (sender, recipient, message) VALUES (?, ?, ?)`, [username, to, message], err => {
+        if (err) res.send(err)
+        console.log('message sent successfully')
+      })
+      io.to(to).emit('private-message', {
+      from: username, message
     });
+    // console.log(`from ${username} to ${to}: ${message}`)
   });
+  socket.on('load-messages', ({ target }) => {
+    db.all(
+      `SELECT * FROM msgs
+      WHERE (sender = ? AND recipient = ?) OR
+      (sender = ? AND recipient = ?)
+      ORDER BY timestamp ASC`,
+      [username, target, target, username],
+      (err, rows) => {
+        if (!err) {
+          socket.emit('chat-history', rows);
+        }
+      }
+    )
+  })
+
+  socket.on('load-conversations', () => {
+    const currentUser = socket.handshake.session.user.username
+    if (user === undefined) return socket.disconnect()
+    db.all(`
+  SELECT DISTINCT CASE
+    WHEN sender = ? THEN recipient
+    ELSE sender
+    END AS conversation_partner
+    FROM msgs
+    WHERE sender = ? OR recipient = ?`,
+    [currentUser, currentUser, currentUser],
+    (err, rows) => {
+      if (err) {
+        console.error(err)
+        return
+      }
+      const partners = rows.map(r => r.conversation_partner)
+      socket.emit('conversation-list', partners)
+    })
+  })
 });
 
 // Setup session middleware
@@ -97,149 +173,165 @@ io.use(sharedSession(sessionMw, {
   autoSave: true
 }));
 
+////////////////// CRON JOBS \\\\\\\\\\\\\\\
+cron.schedule('0 0 * * *', () => {
+  db.run(`DELETE FROM msgs WHERE timestamp < datetime('now', '-14 days')`, (err) => {
+    if (err) {
+      console.error('Error deleting old messages:', err.message);
+    } else {
+      console.log('Old messages deleted successfully.');
+    }
+  });
+});
+
+//////////////////////////////////  NEW REQS  \\\\\\\\\\\\\\\\\\\\
+app.get('/beliefs', (req, res) => {
+  res.render('beliefs')
+})
+
 
 /////////////////////////REQUESTS\\\\\\\\\\\\\\\\
 // Bcrypt for Routes and Authentication
 // const users = [];
-app.get('/register', (req, res) => {
-  res.render('register');
-});
+// app.get('/register', (req, res) => {
+//   res.render('register');
+// });
 
-app.get('/verify/:token', (req, res) => {
-     const { token } = req.params;
-     console.log(token)
-    try {
-        const decoded = jwt.verify(token, process.env.secretKey)
-        console.log(decoded)
-        const userId = decoded.id;
-        console.log(decoded.id)
-        db.run(`UPDATE users SET verified = 1 WHERE id = ?`, [userId], function (err) {
-        if (err) return res.send('Failed to verify.');
-        res.render('message', { message: 'Email successfully verified!' });
-        });
-    } catch (err) {
-        res.render('message', { message: 'Invalid or expired token.' });
-  }
-});
+// app.get('/verify/:token', (req, res) => {
+//      const { token } = req.params;
+//      console.log(token)
+//     try {
+//         const decoded = jwt.verify(token, process.env.secretKey)
+//         console.log(decoded)
+//         const userId = decoded.id;
+//         console.log(decoded.id)
+//         db.run(`UPDATE users SET verified = 1 WHERE id = ?`, [userId], function (err) {
+//         if (err) return res.send('Failed to verify.');
+//         res.render('message', { message: 'Email successfully verified!' });
+//         });
+//     } catch (err) {
+//         res.render('message', { message: 'Invalid or expired token.' });
+//   }
+// });
 
-app.post('/reverify', (req, res) => {
-    const { email } = req.body
-    db.get('SELECT id FROM users WHERE email = ?', [email], (err, row) => {
-        if (err) {
-            console.error('Databaes error:', err.message)
-            return;
-        }
-        if (row) {
-            console.log('User ID:', row.id)
-            const userId = row.id
-            const token = jwt.sign({ id: userId }, process.env.secretKey, { expiresIn: '1h'})
-            const verifyLink = `${BASE_URL}/verify/${token}`  
-            console.log(token)  
+// app.post('/reverify', (req, res) => {
+//     const { email } = req.body
+//     db.get('SELECT id FROM users WHERE email = ?', [email], (err, row) => {
+//         if (err) {
+//             console.error('Databaes error:', err.message)
+//             return;
+//         }
+//         if (row) {
+//             console.log('User ID:', row.id)
+//             const userId = row.id
+//             const token = jwt.sign({ id: userId }, process.env.secretKey, { expiresIn: '1h'})
+//             const verifyLink = `${BASE_URL}/verify/${token}`  
+//             console.log(token)  
             
             
-            const mailOptions = {
-                from: "Collab",
-                to: email,
-                subject: 'Verify your email',
-                html: `<p>Click to verify your account:</p>
-                Click <a href="${verifyLink}">here</a> to verify your email.`
-        };
+//             const mailOptions = {
+//                 from: "Collab",
+//                 to: email,
+//                 subject: 'Verify your email',
+//                 html: `<p>Click to verify your account:</p>
+//                 Click <a href="${verifyLink}">here</a> to verify your email.`
+//         };
 
-        transporter.sendMail(mailOptions, (error, info) => {
-        if (error) {
-            console.error('Email failed:', error);
-            res.send('Failed to send email.')
-        } else {
-            console.log('Verification email sent:', info.response);
-            res.send(`
-                <html>
-                    <head>
-                    <meta http-equiv="refresh" content="4;url=/" />
-                    </head>
-                    <body>
-                    <h2>Verification Email Sent Successfully - Link expires in 1 hour! Redirecting in 5 seconds...</h2>
-                    </body>
-                </html>
-                `);
-        }
-    });
+//         transporter.sendMail(mailOptions, (error, info) => {
+//         if (error) {
+//             console.error('Email failed:', error);
+//             res.send('Failed to send email.')
+//         } else {
+//             console.log('Verification email sent:', info.response);
+//             res.send(`
+//                 <html>
+//                     <head>
+//                     <meta http-equiv="refresh" content="4;url=/" />
+//                     </head>
+//                     <body>
+//                     <h2>Verification Email Sent Successfully - Link expires in 1 hour! Redirecting in 5 seconds...</h2>
+//                     </body>
+//                 </html>
+//                 `);
+//         }
+//     });
 
-        } else console.log('No user found with this ID')
-    })
-})
+//         } else console.log('No user found with this ID')
+//     })
+// })
 
-app.post('/register', async (req, res) => {
-    const { username, password, email } = req.body;
-    console.log(username + ' ' + email)
-    // const verificationToken = crypto.randomBytes(32).toString('hex');
-    if (!isStrongPassword(password)) {
-        return res.send('Password must be at least 8 characters and include lowercase, uppercase and numbers')
-    }
-    const hashed = await bcrypt.hash(password, 10);
-     db.run(`INSERT INTO users (username, password, email) VALUES (?, ?, ?)`, [username, hashed, email], err => {
-    if (err) return res.send('User already exists.');
-    const userId = this.lastID
-    const token = jwt.sign({ id: userId }, process.env.secretKey, { expiresIn: '1h'})
-    const verifyLink = `${BASE_URL}/verify/${token}`    
+// app.post('/register', async (req, res) => {
+//     const { username, password, email } = req.body;
+//     console.log(username + ' ' + email)
+//     // const verificationToken = crypto.randomBytes(32).toString('hex');
+//     if (!isStrongPassword(password)) {
+//         return res.send('Password must be at least 8 characters and include lowercase, uppercase and numbers')
+//     }
+//     const hashed = await bcrypt.hash(password, 10);
+//      db.run(`INSERT INTO users (username, password, email) VALUES (?, ?, ?)`, [username, hashed, email], err => {
+//     if (err) return res.send('User already exists.');
+//     const userId = this.lastID
+//     const token = jwt.sign({ id: userId }, process.env.secretKey, { expiresIn: '1h'})
+//     const verifyLink = `${BASE_URL}/verify/${token}`    
     
     
-    const mailOptions = {
-        from: "Collab",
-        to: email,
-        subject: 'Verify your email',
-        html: `<p>Click to verify your account:</p>
-                Click <a href="${verifyLink}">here</a> to verify your email.`
-        };
+//     const mailOptions = {
+//         from: "Collab",
+//         to: email,
+//         subject: 'Verify your email',
+//         html: `<p>Click to verify your account:</p>
+//                 Click <a href="${verifyLink}">here</a> to verify your email.`
+//         };
 
-        transporter.sendMail(mailOptions, (error, info) => {
-        if (error) {
-            console.error('Email failed:', error);
-            res.send('Failed to send email.')
-        } else {
-            console.log('Verification email sent:', info.response);
-             res.send(`
-                <html>
-                    <head>
-                    <meta http-equiv="refresh" content="4;url=/" />
-                    </head>
-                    <body>
-                    <h2>Verification Email Sent Successfully - Link expires in 1 hour! Redirecting in 5 seconds...</h2>
-                    </body>
-                </html>
-                `);
-        }
-    });
-})
-    // res.redirect('/');
-    // users.push({ username, password: hashed });
-    // res.redirect('/login')
-})
+//         transporter.sendMail(mailOptions, (error, info) => {
+//         if (error) {
+//             console.error('Email failed:', error);
+//             res.send('Failed to send email.')
+//         } else {
+//             console.log('Verification email sent:', info.response);
+//              res.send(`
+//                 <html>
+//                     <head>
+//                     <meta http-equiv="refresh" content="4;url=/" />
+//                     </head>
+//                     <body>
+//                     <h2>Verification Email Sent Successfully - Link expires in 1 hour! Redirecting in 5 seconds...</h2>
+//                     </body>
+//                 </html>
+//                 `);
+//         }
+//     });
+// })
+//     // res.redirect('/');
+//     // users.push({ username, password: hashed });
+//     // res.redirect('/login')
+// })
 
-app.get('/login', (req, res) => {
-    res.render('login')
-})
+// app.get('/login', (req, res) => {
+//     res.render('login')
+// })
 
-app.post('/login2', async (req, res) => {
-    const { identifier, password } = req.body
-    db.get(
-    `SELECT * FROM users WHERE username = ? OR email = ?`,
-    [identifier, identifier],
-    async (err, user) => {
-      if (!user) {
-        return res.send('No user by that ID');
-      }
-      if (!user.verified) return res.send('Please verify your email before logging in.');
-      bcrypt.compare(password, user.password, (err, match) => {
-        if (!match) {
-            return res.send('Invalid Password') 
-        }
-        req.session.user = { username: user.username }
-        res.redirect('/')
-      })
+// app.post('/login2', async (req, res) => {
+//     const { identifier, password } = req.body
+//     db.get(
+//     `SELECT * FROM users WHERE username = ? OR email = ?`,
+//     [identifier, identifier],
+//     async (err, user) => {
+//       if (!user) {
+//         return res.send('No user by that ID');
+//       }
+//       if (!user.verified) return res.send('Please verify your email before logging in.');
+//       bcrypt.compare(password, user.password, (err, match) => {
+//         if (!match) {
+//             return res.send('Invalid Password') 
+//         }
+//         req.session.user = { username: user.username }
+//         res.redirect('/')
+//       })
     
-    // res.redirect('/dashboard');
-  });
-})
+//     // res.redirect('/dashboard');
+//   });
+// })
 //DON'T DELETE-- AUTO LOGIN FOR SITE DEVELOPMENT
 app.post('/login3', async (req, res) => { // THIS IS JUST FOR TROUBLESHOOTING
     // const { identifier, password } = req.body
@@ -265,72 +357,72 @@ app.post('/login3', async (req, res) => { // THIS IS JUST FOR TROUBLESHOOTING
   });
 })
 
-app.post('/login', async (req, res) => {
-    const { identifier, password } = req.body
-    db.get(
-    `SELECT * FROM users WHERE username = ? OR email = ?`,
-    [identifier, identifier],
-    async (err, user) => {
-      if (!user) {
-        return res.json({ success: false, message: 'User not found' });
-      }
-      if (!user.verified) return res.send('Please verify your email before logging in.');
-      bcrypt.compare(password, user.password, (err, match) => {
-        if (!match) {
-            return res.json({ success: false, message: 'Invalid Password' })
-        }
-        req.session.user = { username: user.username }
-        res.json({ success: true })
-      })
+// app.post('/login', async (req, res) => {
+//     const { identifier, password } = req.body
+//     db.get(
+//     `SELECT * FROM users WHERE username = ? OR email = ?`,
+//     [identifier, identifier],
+//     async (err, user) => {
+//       if (!user) {
+//         return res.json({ success: false, message: 'User not found' });
+//       }
+//       if (!user.verified) return res.send('Please verify your email before logging in.');
+//       bcrypt.compare(password, user.password, (err, match) => {
+//         if (!match) {
+//             return res.json({ success: false, message: 'Invalid Password' })
+//         }
+//         req.session.user = { username: user.username }
+//         res.json({ success: true })
+//       })
     
-    // res.redirect('/dashboard');
-  });
-})
+//     // res.redirect('/dashboard');
+//   });
+// })
 
 
-app.get('/dashboard', requireAuth, async (req, res) => {
-    const username = req.session.user.username
-    // console.log(username)
-    dbPdf.all(`
-        SELECT * FROM pdfs WHERE uploaded_by = ?`, [username], (err, pdf) => {
-            if (err || !pdf) {
-                console.log('choke')
-                pdf = {
-                    title: '',
-                    filename: '',
-                    uploaded_at: '',
-                    uploaded_by: ''
-                }
-                res.send('no PDF found')
-            }
-            // console.log(pdf)
-            dbPdf.all(`
-              SELECT * FROM jobs WHERE username = ?`, [username], (err, jobs) => {
-                if (err || !jobs.length === 0) {
-                  jobs = {
-                    id: 0,
-                    title: '',
-                    username: '',
-                    description: '',
-                    reqs: '',
-                    contact: '',
-                    pdf: '',
-                    active: 0
-                  }
-                }
-                res.render('dashboard', { username, pdf, jobs })
-              })
-        // res.render('dashboard', { username, pdf })
-    })
-})
+// app.get('/dashboard', requireAuth, async (req, res) => {
+//     const username = req.session.user.username
+//     // console.log(username)
+//     dbPdf.all(`
+//         SELECT * FROM pdfs WHERE uploaded_by = ?`, [username], (err, pdf) => {
+//             if (err || !pdf) {
+//                 console.log('choke')
+//                 pdf = {
+//                     title: '',
+//                     filename: '',
+//                     uploaded_at: '',
+//                     uploaded_by: ''
+//                 }
+//                 res.send('no PDF found')
+//             }
+//             // console.log(pdf)
+//             dbPdf.all(`
+//               SELECT * FROM jobs WHERE username = ?`, [username], (err, jobs) => {
+//                 if (err || !jobs.length === 0) {
+//                   jobs = {
+//                     id: 0,
+//                     title: '',
+//                     username: '',
+//                     description: '',
+//                     reqs: '',
+//                     contact: '',
+//                     pdf: '',
+//                     active: 0
+//                   }
+//                 }
+//                 res.render('dashboard', { username, pdf, jobs })
+//               })
+//         // res.render('dashboard', { username, pdf })
+//     })
+// })
 
 // Logging out
-app.post('/logout', (req, res) => {
-    req.session.destroy(err => {
-        if (err) return res.status(500).send("Couldn't log out")
-        res.redirect('/')
-    })
-})
+// app.post('/logout', (req, res) => {
+//     req.session.destroy(err => {
+//         if (err) return res.status(500).send("Couldn't log out")
+//         res.redirect('/')
+//     })
+// })
 
 
 // Paths
@@ -379,17 +471,6 @@ app.post('/upload-image', upload.single('image'), (req, res) => {
 /////////// HANDLING PDF DISPLAY PAGES \\\\\\\\\\\\
 app.get('/pdf/:slug', (req, res) => {
   const slug = req.params.slug;
-//   let comments = [
-//     {
-//     user: "black boy",
-//     text: "I like icecream"
-//   },
-//   {
-//     user: "white girl",
-//     text: "I like whiteclaws"
-//   }
-//   ]
-  
     dbPdf.get('SELECT * FROM pdfs WHERE slug = ?', [slug], (err, pdf) => {
     if (err || !pdf) return res.status(404).send('PDF not found');
         dbPdf.all(`SELECT * FROM comments WHERE pdf_id = ?`, [pdf.id], (err, comments) => {
@@ -405,7 +486,7 @@ app.get('/pdf/:slug', (req, res) => {
                     }
                 ]
             } else {
-            dbPdf.all('SELECT * FROM pdfs WHERE slug != ? LIMIT 10', [slug], (err2, related) => {
+            dbPdf.all('SELECT * FROM pdfs WHERE slug != ?', [slug], (err2, related) => {
         // console.log(related)
         console.log(pdf.id)
         // dbPdf.all(`
@@ -429,66 +510,6 @@ app.get('/pdf/:slug', (req, res) => {
     });
   });
 })
-//   const pdf = getPdfBySlug(slug); // custom function
-//   const comments = getCommentsForPdf(pdf.id);
-//   const relatedPdfs = getRelatedPdfs(pdf.id);
-
-//   res.render('projects', {
-//     pdfTitle: pdf.title,
-//     pdfFile: pdf.filename,
-//     pdfId: pdf.id,
-//     pdfUser: pdf.uploaded_by
-    // comments,
-    // relatedPdfs
-//   });
-
-
-// Multer setup
-
-
-// // Database
-// const dbPdf = new sqlite3.Database('./db.sqlite')
-// // Create users table if it doesn't exist
-// dbPdf.serialize(() => {
-//   dbPdf.run(`CREATE TABLE IF NOT EXISTS pdfs (
-//     id INTEGER PRIMARY KEY AUTOINCREMENT,
-//     title TEXT NOT NULL,
-//     slug TEXT UNIQUE NOT NULL,
-//     filename TEXT NOT NULL,
-//     uploaded_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-//     uploaded_by TEXT NOT NULL
-//   )`);
-//   dbPdf.run(`CREATE TABLE IF NOT EXISTS comments (
-//     id INTEGER PRIMARY KEY AUTOINCREMENT,
-//     pdf_id INTEGER NOT NULL,
-//     user TEXT NOT NULL,
-//     text TEXT NOT NULL,
-//     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
-//     FOREIGN KEY (pdf_id) REFERENCES pdfs(id)
-//     )`);
-//   dbPdf.run(`CREATE TABLE IF NOT EXISTS tags (
-//     id INTEGER PRIMARY KEY AUTOINCREMENT,
-//     name TEXT UNIQUE)`)
-//   dbPdf.run(`CREATE TABLE IF NOT EXISTS  pdf_tags (
-//     pdf_id INTEGER,
-//     tag_id INTEGER,
-//     PRIMARY KEY (pdf_id, tag_id),
-//     FOREIGN KEY (pdf_id) REFERENCES pdfs(id),
-//     FOREIGN KEY (tag_id) REFERENCES tags(id)
-//     )`)
-//   dbPdf.run(`CREATE TABLE IF NOT EXISTS jobs (
-//     id INTEGER PRIMARY KEY AUTOINCREMENT,
-//     username TEXT,
-//     title TEXT,
-//     description TEXT,
-//     reqs TEXT,
-//     contact TEXT, 
-//     pdf TEXT, 
-//     active BOOLEAN DEFAULT 1
-//   )`);
-//     dbPdf.run('PRAGMA foreign_keys = ON')
-// });
-
 
 // Route handling
 // Route: Upload PDF
@@ -496,8 +517,10 @@ app.post('/upload-pdf', requireAuth, uploadPdf.single('pdf'), (req, res) => {
     if (!req.file) {
         return res.status(400).send('No file uploaded. Check multer.')
     }
-  const { title, tags } = req.body;
+  const { title, tags, authors, description, unis } = req.body;
   tagList = tags.split(',').map(tag => tag.trim().toLowerCase()).filter(tag => tag.length > 0)
+  authorList = authors.split(',').map(author => author.trim().toLowerCase()).filter(author => author.length > 0)
+  uniList = unis.split(',').map(uni => uni.trim().toLowerCase()).filter(uni => uni.length > 0)
 //   console.log(tagList)
   const slug = slugify(title, { lower: true, strict: true });
 //   console.log(req.file)
@@ -507,8 +530,8 @@ app.post('/upload-pdf', requireAuth, uploadPdf.single('pdf'), (req, res) => {
 //   console.log(req.session.user.username)
 
   dbPdf.run(
-    'INSERT INTO pdfs (title, slug, filename, uploaded_by) VALUES (?, ?, ?, ?)',
-    [title, slug, filename, req.session.user.username],
+    'INSERT INTO pdfs (title, slug, filename, uploaded_by, description, authors, unis) VALUES (?, ?, ?, ?, ?, ?, ?)',
+    [title, slug, filename, req.session.user.username, description, authorList, uniList],
     function (err) {
       if (err) {
         console.error(err);
@@ -542,7 +565,7 @@ app.post('/upload-pdf', requireAuth, uploadPdf.single('pdf'), (req, res) => {
     });
 });
 
-app.delete('/pdf/:id', (req, res) => {
+app.delete('/pdf/delete/:id', (req, res) => {
   const pdfId = req.params.id;
 
   // Optionally check that the current user owns the file
@@ -599,12 +622,14 @@ dbPdf.all(`
       pdfs.title LIKE ? OR 
       tags.name LIKE ? OR 
       pdfs.uploaded_by LIKE ? OR
-      pdfs.uploaded_at LIKE ?
+      pdfs.uploaded_at LIKE ? OR
+      pdfs.unis LIKE ? OR
+      pdfs.authors LIKE ?
     GROUP BY pdfs.id
     ORDER BY 
       title_match DESC,
       tag_match_count DESC
-  `, [searchTerm, searchTerm, searchTerm, searchTerm, searchTerm], (err, rows) => {
+  `, [searchTerm, searchTerm, searchTerm, searchTerm, searchTerm, searchTerm, searchTerm], (err, rows) => {
     if (err) return console.error(err);
     // if (rows) results.push(rows)
     console.log(rows); // display ordered results
@@ -720,7 +745,7 @@ app.post('/post-job', requireAuth, uploadPdf.single('pdf'), (req, res) => {
     });
 });
 
-app.delete('/jobs/:id', requireAuth, (req, res) => {
+app.delete('/jobs/delete/:id', requireAuth, (req, res) => {
   const pdfId = req.params.id;
 
   // Optionally check that the current user owns the file
@@ -752,14 +777,55 @@ app.delete('/jobs/:id', requireAuth, (req, res) => {
     })
 });
 
+app.post('/pdf/edit/:id', requireAuth, uploadPdf.single('pdf'), (req, res) => {
+    const pdfId = req.params.id;
+  console.log(`ID = ${pdfId}`)
+  // Optionally check that the current user owns the file
+   dbPdf.get(`SELECT * FROM pdfs WHERE id = ?`, [pdfId], (err, row) => {
+      if (err) return console.error(err.message)
+      console.log(row)
+        if (row.uploaded_by !== req.session.user.username || row.uploaded_by !== process.env.ADMIN) {
+            return res.status(403).send('Forbidden');
+        }
+      
+      const { description } = req.body;
+      // if (req.file) { const filename = req.file.filename}
+      console.log(`description ${description}`)
+      if (description) {
+        dbPdf.run(`
+          UPDATE pdfs SET description = ? WHERE id = ?`, [description, pdfId], function (err) {
+            if (err) {
+              console.error("Database update error:", err.message);
+              return res.status(500).json({ success: false, error: err.message });
+            }
+          })
+      }
+      if (req.file) {
+          const filename = req.file.filename
+          console.log(filename)
+            dbPdf.run(`
+              UPDATE pdfs SET filename = ? WHERE id = ?`, [filename, pdfId], function (err) {
+            if (err) {
+              console.error("Database update error:", err.message);
+              return res.status(500).json({ success: false, error: err.message });
+            }
+          })
+
+      }
+      })
+      // // if (!description && !filename) res.send('No changes to be made')
+      // else res.json({ success: true, message: 'PDF updated' });
+})
+
 
 /////// MESSAGING \\\\\\\\
 
-app.post('/messages/send', (req, res) => {
-  const { sender, recipient, message } = req.body;
+app.post('/messages/send', requireAuth, (req, res) => {
+  const { recipient, message } = req.body;
+  const user = req.session.user.username
   db.run(
-    `INSERT INTO messages (sender, recipient, message) VALUES (?, ?, ?)`,
-    [sender, recipient, message],
+    `INSERT INTO msgs (sender, recipient, message) VALUES (?, ?, ?)`,
+    [user, recipient, message],
     function (err) {
       if (err) return res.status(500).json({ error: err.message });
       res.json({ success: true, id: this.lastID });
@@ -767,19 +833,32 @@ app.post('/messages/send', (req, res) => {
   );
 });
 
-app.get('/messages/:user1/:user2', (req, res) => {
-  const { user1, user2 } = req.params;
+// app.get('/messages/:user1/:user2', (req, res) => {
+//   const { user1, user2 } = req.params;
+//   db.all(`
+//     SELECT * FROM msgs
+//     WHERE (sender = ? AND recipient = ?)
+//        OR (sender = ? AND recipient = ?)
+//     ORDER BY timestamp ASC
+//   `, [user1, user2, user2, user1], (err, rows) => {
+//     if (err) return res.status(500).json({ error: err.message });
+//     res.json(rows);
+//   });
+// });
+
+app.post('/getmsg', requireAuth, (req, res) => {
+  const { other } = req.body;
+  const user = req.session.user.username
   db.all(`
-    SELECT * FROM messages
+    SELECT * FROM msgs
     WHERE (sender = ? AND recipient = ?)
        OR (sender = ? AND recipient = ?)
     ORDER BY timestamp ASC
-  `, [user1, user2, user2, user1], (err, rows) => {
+    `, [user1, user2, user2, user1], (err, rows) => {
     if (err) return res.status(500).json({ error: err.message });
-    res.json(rows);
-  });
-});
-
+    res.json(rows); 
+  })
+})
 
 
 //////////////////////////////// OLD CONTENT
@@ -824,9 +903,11 @@ app.post('/signup', (req, res) => {
 });
 
 
+
+
 // // environment variable
 const port = 3500//process.env.PORT || 3000 // use the chosen variable if available, if not use 3000
-app.listen(port, () => console.log(`Listening on port ${port}`))
+server.listen(port, () => console.log(`Listening on port ${port}`))
 
 
 // For setting up https later

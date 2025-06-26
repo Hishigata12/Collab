@@ -11,10 +11,11 @@ const slugify = require('slugify');
 const session = require('express-session');
 const bcrypt = require('bcrypt');
 //Import functions
-const { isStrongPassword } = require('../middleware/controlware')
+const { isStrongPassword, transporter } = require('../middleware/controlware')
 
-
-//Authentication Controller functions
+//Authentication Controller functions and vars
+jwtSecret = process.env.secretKey
+BASE_URL = process.env.BASE_URL
 
 //guest user page
 exports.guest =(req, res) => {
@@ -40,9 +41,10 @@ const { username, password, email } = req.body;
         return res.send('Password must be at least 8 characters and include lowercase, uppercase and numbers')
     }
     const hashed = await bcrypt.hash(password, 10);
-     db.run(`INSERT INTO users (username, password, email) VALUES (?, ?, ?)`, [username, hashed, email], err => {
+     db.run(`INSERT INTO users (username, password, email) VALUES (?, ?, ?)`, [username, hashed, email], function(err)  {
     if (err) return res.send('User already exists.');
     const userId = this.lastID
+    console.log(`user ID: ${userId}`)
     const token = jwt.sign({ id: userId }, process.env.secretKey, { expiresIn: '1h'})
     const verifyLink = `${BASE_URL}/verify/${token}`    
     
@@ -79,30 +81,12 @@ const { username, password, email } = req.body;
     // res.redirect('/login')
 }
 
-//user verification
-exports.verifyUser = (req, res) => {
-     const { token } = req.params;
-         console.log(token)
-        try {
-            const decoded = jwt.verify(token, process.env.secretKey)
-            console.log(decoded)
-            const userId = decoded.id;
-            console.log(decoded.id)
-            db.run(`UPDATE users SET verified = 1 WHERE id = ?`, [userId], function (err) {
-            if (err) return res.send('Failed to verify.');
-            res.render('message', { message: 'Email successfully verified!' });
-            });
-        } catch (err) {
-            res.render('message', { message: 'Invalid or expired token.' });
-      }
-    };
-
 //reverify user
 exports.reverifyUser = (req, res) => {
     const { email } = req.body
         db.get('SELECT id FROM users WHERE email = ?', [email], (err, row) => {
             if (err) {
-                console.error('Databaes error:', err.message)
+                console.error('Database error:', err.message)
                 return;
             }
             if (row) {
@@ -143,6 +127,24 @@ exports.reverifyUser = (req, res) => {
         } else console.log('No user found with this ID')
     })
 };
+
+//user verification
+exports.verifyUser = (req, res) => {
+     const { token } = req.params;
+         console.log(token)
+        try {
+            const decoded = jwt.verify(token, process.env.secretKey)
+            console.log(decoded)
+            const userId = decoded.id;
+            console.log(decoded.id)
+            db.run(`UPDATE users SET verified = 1 WHERE id = ?`, [userId], function (err) {
+            if (err) return res.send('Failed to verify.');
+            res.render('message', { message: 'Email successfully verified!' });
+            });
+        } catch (err) {
+            res.render('message', { message: 'Invalid or expired token.' });
+      }
+    };
 
 //login user
 exports.login = ( req, res) => {
@@ -220,7 +222,23 @@ exports.dashboard = async (req, res) => {
                 res.send('no PDF found')
             }
             // console.log(pdf)
-        res.render('dashboard', { username, pdf })
+            dbPdf.all(`
+              SELECT * FROM jobs WHERE username = ?`, [username], (err, jobs) => {
+                if (err || !jobs.length === 0) {
+                  jobs = {
+                    id: 0,
+                    title: '',
+                    username: '',
+                    description: '',
+                    reqs: '',
+                    contact: '',
+                    pdf: '',
+                    active: 0
+                  }
+                }
+                res.render('dashboard', { username, pdf, jobs })
+              })
+        // res.render('dashboard', { username, pdf })
     })
 };
 

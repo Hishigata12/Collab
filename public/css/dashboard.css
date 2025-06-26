@@ -1,11 +1,12 @@
 /* public/styles/dashboard.css */
 body {
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  margin: 1rem 1rem;
+  /* margin: 1rem 1rem; */
   padding: 0;
+  margin: 0;
   background: #eef3f9;
   color: #1b1b1b;
-  overflow: hidden;
+  /* overflow: hidden; */
 }
 
 .dashboard-container {
@@ -40,7 +41,8 @@ body {
 }
 
 .upload-form input[type="text"],
-.upload-form input[type="file"] {
+.upload-form input[type="file"],
+.upload-form textarea {
   display: block;
   width: 95%;
   margin-bottom: 10px;
@@ -153,3 +155,14 @@ body {
       border-radius: 10px;
       box-shadow: 0 0 10px rgba(0,0,0,0.1);
     }
+
+.transparent {
+  background: transparent;
+  border: 0;
+}
+
+#charCount {
+  font-size: 0.9em;
+  color: gray;
+  margin-top: 4px;
+}
