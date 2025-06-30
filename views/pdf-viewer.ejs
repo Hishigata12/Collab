@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <% include('banner') %>
+  <title>PDF.js with In-Text Comments</title>
+<link rel="stylesheet" href="/css/pdf-viewer.css" />
+</head>
+<body>
+  <h2 style="text-align:center;">PDF Viewer with Commenting</h2>
+    <div id="pdf-container" data-id="<%= pdf.filename %>">
+    <div id="comment-layer">
+
+    </div>
+    </div>
+    <button id='toggle-com' onclick="toggleComments()">Comments are ON</button>
+    <button id="save-coms" data-id="<%= pdf.id %>">Save Comments</button>
+
+  <!-- PDF.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.4.120/pdf.min.js"></script>
+  <script>
+   const coms = <%- JSON.stringify(coms) %> 
+   </script>
+  <script src="/js/pdf-viewer.js"></script>
+</body>
+</html>

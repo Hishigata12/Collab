@@ -1,0 +1,62 @@
+    body {
+    font-family: Arial, sans-serif;
+    justify-content: center;
+    margin: 0;
+    /* background: #f4f4f4; */
+    background: radial-gradient(circle at top left,rgb(163, 176, 182),rgb(147, 201, 214),rgb(190, 199, 202));
+    }
+  #pdf-container {
+    position: relative;
+    max-height: 90vh; /* Approximate height of a PDF page at scale 1.5 */
+    overflow-y: auto;
+    border: 1px solid #ccc;
+    margin: 0 auto;
+    width: fit-content;
+    background: #fff;
+    }
+    canvas {
+      border: 1px solid #ccc;
+      display: block;
+      margin-bottom: 10px;
+    }
+    .comment-pin {
+      position: absolute;
+      background: yellow;
+      border: 1px solid #999;
+      padding: 10px;
+      font-size: 12px;
+      border-radius: 5px;
+      z-index: 10;
+      opacity: 0.5
+    }
+
+    #comment-layer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    pointer-events: none;
+    z-index: 10;
+    }
+
+    .hidden {
+        display: none;
+    }
+    button {
+        min-height: 3vh;
+        min-width: 5vh;
+        font-size: 16px;
+        background-color: green;
+        /* margin-bottom: 10px; */
+    }
+      .tooltip {
+    position: absolute;
+    background: black;
+    color: white;
+    padding: 6px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.2s;
+    z-index: 1000;
+  }

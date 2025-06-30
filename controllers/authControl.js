@@ -165,7 +165,8 @@ exports.loginMain = async (req, res) => {
         if (!match) {
             return res.json({ success: false, message: 'Invalid Password' })
         }
-        req.session.user = { username: user.username }
+        console.log(user)
+        req.session.user = { username: user.username, id: user.id, email: user.email, subs: user.subs }
         res.json({ success: true })
       })
     
@@ -197,7 +198,8 @@ exports.loginIndexPg = async (req, res) => {
         if (!match) {
             return res.send('Invalid Password') 
         }
-        req.session.user = { username: user.username }
+        console.log(user)
+        req.session.user = { username: user.username, id: user.id, email: user.email, subs: user.subs }
         res.redirect('/')
       })
     
@@ -207,25 +209,27 @@ exports.loginIndexPg = async (req, res) => {
 
 //user profile/dashboard page
 exports.dashboard = async (req, res) => {
-    const username = req.session.user.username
+    // const username = req.session.user.username
+    const user = req.session.user
+    console.log(req.session.user)
     // console.log(username)
-    dbPdf.all(`
-        SELECT * FROM pdfs WHERE uploaded_by = ?`, [username], (err, pdf) => {
+     dbPdf.all(`
+        SELECT * FROM pdfs WHERE uploaded_by = ?`, [user.username], (err, pdf) => {
             if (err || !pdf) {
                 console.log('choke')
-                pdf = {
+                pdf = [{
                     title: '',
                     filename: '',
                     uploaded_at: '',
                     uploaded_by: ''
-                }
+                }]
                 res.send('no PDF found')
             }
             // console.log(pdf)
-            dbPdf.all(`
-              SELECT * FROM jobs WHERE username = ?`, [username], (err, jobs) => {
+             dbPdf.all(`
+              SELECT * FROM jobs WHERE username = ?`, [user.username], (err, jobs) => {
                 if (err || !jobs.length === 0) {
-                  jobs = {
+                  jobs = [{
                     id: 0,
                     title: '',
                     username: '',
@@ -234,11 +238,29 @@ exports.dashboard = async (req, res) => {
                     contact: '',
                     pdf: '',
                     active: 0
-                  }
+                  }]
                 }
-                res.render('dashboard', { username, pdf, jobs })
+                   dbPdf.all(`
+              SELECT * FROM prepublish WHERE uploaded_by = ?`, [user.username], (err, review) => {
+                if (err) return res.send(err)
+                if (!jobs.length === 0) {
+                  review = [{
+                    id: 0,
+                    title: '',
+                    username: '',
+                    description: '',
+                    reqs: '',
+                    contact: '',
+                    pdf: '',
+                    active: 0, 
+                    type: 1,
+                  }]
+                }
+                console.log(review)
+                res.render('dashboard', { user, pdf, jobs, review })
               })
         // res.render('dashboard', { username, pdf })
+            })
     })
 };
 

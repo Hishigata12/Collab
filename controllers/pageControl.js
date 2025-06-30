@@ -125,4 +125,15 @@ exports.pdfComment = (req, res) => {
     })
 };
 
-
+exports.feedbackDisplay = (req, res) => {
+    const slug = req.params.slug;  
+    dbPdf.get('SELECT * FROM prepublish WHERE slug = ?', [slug], (err, pdf) => {
+    if (err || !pdf) return res.status(404).send('PDF not found');
+      // GET COMMENTS
+      dbPdf.all(`SELECT * FROM feedblack WHERE pdf_id = ?`, [pdf.id], (err, coms) => {
+        console.log(coms)
+        res.render('pdf-viewer', { pdf, coms });
+      })
+            
+      })
+    }

@@ -38,6 +38,7 @@ app.use(express.json());
 app.use(cors());
 app.use(express.static(path.join(__dirname, 'public/')))
 app.use(express.urlencoded({extended: false}))
+app.set('trust proxy', true); 
 // app.use(session({
 //     secret: 'mySecretKey',
 //     resave: false,
@@ -349,7 +350,7 @@ app.post('/login3', async (req, res) => { // THIS IS JUST FOR TROUBLESHOOTING
         if (!match) {
             return res.send('Invalid Password') 
         }
-        req.session.user = { username: user.username }
+        req.session.user = { username: user.username, id: user.id, email: user.email, subs: user.subs }
         res.redirect('/')
       })
     
@@ -750,7 +751,7 @@ app.delete('/jobs/delete/:id', requireAuth, (req, res) => {
 
   // Optionally check that the current user owns the file
     dbPdf.get(`SELECT * FROM jobs WHERE id = ?`, [pdfId], (err, row) => {
-        if (row.username !== req.session.user.username || row.username !== process.env.ADMIN) {
+        if (row.username !== req.session.user.username && row.username !== process.env.ADMIN) {
             return res.status(403).send('Forbidden');
         }
   // console.log(row)
@@ -777,6 +778,38 @@ app.delete('/jobs/delete/:id', requireAuth, (req, res) => {
     })
 });
 
+app.delete('/feedback/delete/:id', requireAuth, (req, res) => {
+    const pdfId = req.params.id;
+
+  // Optionally check that the current user owns the file
+    dbPdf.get(`SELECT * FROM prepublish WHERE id = ?`, [pdfId], (err, row) => {
+      console.log(row.uploaded_by)
+      console.log(req.session.user.username)
+        if (row.uploaded_by !== req.session.user.username && row.uploaded_by !== process.env.ADMIN) {
+            return res.status(403).send('Forbidden');
+        }
+  // console.log(row)
+      const filePath = path.join(__dirname, 'public', 'pdfs', path.basename(row.filename));
+      // console.log(filePath)       
+          dbPdf.run(`DELETE FROM prepublish WHERE id = ?`, [pdfId], function (err) {
+              if (err) {
+              console.error('Failed to delete PDF:', err.message);
+              return res.status(500).json({ success: false });
+              }
+              // 4. Then delete the actual file
+              fs.unlink(filePath, (fsErr) => {
+              if (fsErr && fsErr.code !== 'ENOENT') {
+                  console.error('Failed to delete file:', fsErr.message);
+                  // optional: you could still consider it successful if DB delete worked
+                  return res.status(500).json({ success: false, message: 'File delete error' });
+              }
+
+              res.json({ success: true });
+        })
+      })
+    })
+})
+
 app.post('/pdf/edit/:id', requireAuth, uploadPdf.single('pdf'), (req, res) => {
     const pdfId = req.params.id;
   console.log(`ID = ${pdfId}`)
@@ -784,7 +817,7 @@ app.post('/pdf/edit/:id', requireAuth, uploadPdf.single('pdf'), (req, res) => {
    dbPdf.get(`SELECT * FROM pdfs WHERE id = ?`, [pdfId], (err, row) => {
       if (err) return console.error(err.message)
       console.log(row)
-        if (row.uploaded_by !== req.session.user.username || row.uploaded_by !== process.env.ADMIN) {
+        if (row.uploaded_by !== req.session.user.username && row.uploaded_by !== process.env.ADMIN) {
             return res.status(403).send('Forbidden');
         }
       
@@ -809,12 +842,9 @@ app.post('/pdf/edit/:id', requireAuth, uploadPdf.single('pdf'), (req, res) => {
               console.error("Database update error:", err.message);
               return res.status(500).json({ success: false, error: err.message });
             }
-          })
-
+         })
       }
       })
-      // // if (!description && !filename) res.send('No changes to be made')
-      // else res.json({ success: true, message: 'PDF updated' });
 })
 
 
@@ -861,6 +891,13 @@ app.post('/getmsg', requireAuth, (req, res) => {
 })
 
 
+app.get('/viewer', (req, res) => {
+  res.render('pdf-viewer')
+})
+
+
+
+
 //////////////////////////////// OLD CONTENT
 // Form POST handler
 app.post('/create', (req, res) => {
@@ -903,7 +940,15 @@ app.post('/signup', (req, res) => {
 });
 
 
+// Temporary use before getting NGINX running
+const options = {
+  key: fs.readFileSync('cloudflare.key'),
+  cert: fs.readFileSync('cloudflare.crt'),
+};
 
+https.createServer(options, app).listen(443, () => {
+  console.log('HTTPS server running');
+});
 
 // // environment variable
 const port = 3500//process.env.PORT || 3000 // use the chosen variable if available, if not use 3000

@@ -12,7 +12,8 @@
 
 <body>
     <div class="title">
-        <h1>Dashboard for <%= username %></h1>
+        <h1>Dashboard for <%= user.username %></h1>
+        <h3>Followers: <%= user.subs %></h3>
     </div>
     
     <div class="container">
@@ -27,6 +28,13 @@
                     <textarea name="description" id="study-desc" rows="5"
                           maxlength="512" placeholder="Study Description"></textarea>
                     <div id="char-count">512 characters remaining</div>
+                    <label for="study-type">Choose a publication type:</label>
+                    <select id="study-type" name="type">
+                        <option value='1'>Original Manuscript</option>
+                        <option value='2'>Methodology Paper</option>
+                        <option value="3">Subject Review</option>
+                        <option value="4">Study Replication</option>
+                    </select>
                     <input type="text" name="tags" placeholder="Comma-separated tags, 8 max"><br>
                     <button type="submit">Publish</button>
                     <div class="upload-animation" id="uploadMessage">PDF uploaded successfully!</div>
@@ -50,6 +58,21 @@
                     <button type="submit">Publish Edits</button>
                     <div class="upload-animation" id="uploadMessage">Edits processed successfully!</div>
                 </form>
+                <form id="review-form" class="upload-form hidden" enctype="multipart/form-data">
+                    <input type="text" name="title" placeholder="Enter title for prepublish review" required />
+                    <input type="file" name="pdf" accept="application/pdf" required />
+                    <textarea name="description" id="study-desc" rows="5"
+                          maxlength="512" placeholder="Study Description and concerns for feedback"></textarea>
+                    <div id="char-count">512 characters remaining</div>
+                    <label for="study-type">Choose a publication type:</label>
+                    <select id="study-type" name="type">
+                        <option value='1'>Original Manuscript</option>
+                        <option value='2'>Experimental Design</option>
+                        <option value="3">Other</option>
+                    </select><br>
+                    <button type="submit">Post for feedback</button>
+                    <div class="upload-animation" id="uploadMessage3">PDF uploaded successfully!</div>
+                </form>
             </div>
             <h2>Articles Published</h2>
             <ul class="upload-list" id="pdf-list">
@@ -61,12 +84,22 @@
                     </li>
                 <% }) %>
             </ul>
+            <h2>Manuscripts/Experimental Plans for Review</h2>
+            <ul class="upload-list" id="prepublish-list">
+                      <% review.forEach(p => { %>
+                    <li>
+                        <a href="/feedback/<%= p.slug %>"><%= p.title %></a>
+                        <!-- <button class="edit-btn-pdf" data-id="<%= p.id %>">&#9881; </button> -->
+                        <button class="delete-btn-feedback" data-id="<%= p.id %>">🗑️ </button>
+                    </li>
+                <% }) %>
+            </ul>
             <h2>Job Listings</h2>
             <ul class="upload-list" id="job-postings">
                 <% jobs.forEach(j => { %>
                     <li>
                         <a href="/jobs/<%= j.id %>"><%= j.title %></a>
-                        <button class="delete-btn-job transparent" data-id="<%= j.id %>">🗑️ </button>
+                        <button class="delete-btn-jobs transparent" data-id="<%= j.id %>">🗑️ </button>
                     </li>
                 <% }) %>
             </ul>

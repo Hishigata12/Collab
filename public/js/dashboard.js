@@ -5,14 +5,22 @@ let uploadMessage2 = document.getElementById("uploadMessage2");
 let uploadMessage3 = document.getElementById("uploadMessage3");
 let pdfList = document.getElementById('pdf-list')
 let jobForm = document.getElementById("jobForm")
+let reviewForm = document.getElementById("review-form")
 const editPdf = document.getElementById("edit-pdf-form")
+const studyType = document.getElementById('study-type')
+studyType.addEventListener('change', (e) => {
+  console.log(studyType.value)
+})
 
 let editPdfID = []
+
+
 
 form.addEventListener("submit", async (e) => {
   e.preventDefault();
 
   const formData = new FormData(form);
+  if (!confirm('Are you sure you want to dpublish this study?')) return;
 
   try {
     const res = await fetch("/upload-pdf", {
@@ -51,6 +59,35 @@ form.addEventListener("submit", async (e) => {
     uploadMessage.style.display = "block";
   }
 });
+
+reviewForm.addEventListener('submit', async (e) => {
+  e.preventDefault()
+  const formData = new FormData(reviewForm)
+  try {
+    const res = await fetch('/upload-prepublish', {
+      method: "POST",
+      body: formData,
+    })
+    const result = await res.json();
+    console.log(result)
+    if (result.success && result.slug && result.title && result.id) {
+      uploadMessage3.textContent = `New study posted successfully id: ${result.id}`
+      uploadMessage3.style.display = 'block'
+      form.reset()
+      setTimeout(() => {
+        uploadMessage3.style.display = 'none'
+        fetch('/dashboard')
+      }, 5000)
+    } else {
+       uploadMessage.textContent = "Upload failed. Try again.";
+       uploadMessage.style.display = "block";
+    }
+  } catch (err) {
+    console.error("Error uploading file", err)
+    uploadMessage.textContent = "Upload failed. Try again.";
+    uploadMessage.style.display = "block";
+  }
+})
 
 jobForm.addEventListener("submit", async (e) => {
   e.preventDefault();
@@ -117,7 +154,8 @@ editPdf.addEventListener("submit", async (e) => {
   }
 })
 
-document.querySelectorAll('.delete-btn-pdf').forEach(button => {
+function addDeleteButtons(type) {
+  document.querySelectorAll(`.delete-btn-${type}`).forEach(button => {
   button.classList.add('transparent')
   button.addEventListener('click', async (e) => {
   const pdfId = button.dataset.id;
@@ -125,8 +163,8 @@ document.querySelectorAll('.delete-btn-pdf').forEach(button => {
   if (!confirm('Are you sure you want to delete this PDF?')) return;
 
   try {
-    
-    const res = await fetch(`/pdf/delete/${pdfId}`, {
+    console.log(`/${type}/delete/${pdfId}`,)
+    const res = await fetch(`/${type}/delete/${pdfId}`, {
       method: 'DELETE',
     });
 
@@ -140,37 +178,70 @@ document.querySelectorAll('.delete-btn-pdf').forEach(button => {
     }
     } catch (err) {
       console.error('Delete error:', err);
-      alert('An error occurred.');
+      alert('An error occurred while trying to delete.');
     }
   });
 });
+}
 
-document.querySelectorAll('.delete-btn-job').forEach(button => {
-  button.addEventListener('click', async (e) => {
-  const jobID = button.dataset.id;
-  console.log(jobID)
-  if (!confirm('Are you sure you want to delete this listing?')) return;
+addDeleteButtons('pdf')
+addDeleteButtons('jobs')
+addDeleteButtons('feedback')
 
-  try {
+// document.querySelectorAll('.delete-btn-pdf').forEach(button => {
+//   button.classList.add('transparent')
+//   button.addEventListener('click', async (e) => {
+//   const pdfId = button.dataset.id;
+//   console.log(pdfId)
+//   if (!confirm('Are you sure you want to delete this PDF?')) return;
+
+//   try {
     
-    const res = await fetch(`/jobs/delete/${jobID}`, {
-      method: 'DELETE',
-    });
+//     const res = await fetch(`/pdf/delete/${pdfId}`, {
+//       method: 'DELETE',
+//     });
 
-    const result = await res.json();
-    if (result.success) {
-      // Remove item from DOM
-      const li = button.closest('li');
-      li.remove();
-    } else {
-      alert('Failed to delete PDF.');
-    }
-    } catch (err) {
-      console.error('Delete error:', err);
-      alert('An error occurred.');
-    }
-  });
-});
+//     const result = await res.json();
+//     if (result.success) {
+//       // Remove item from DOM
+//       const li = button.closest('li');
+//       li.remove();
+//     } else {
+//       alert('Failed to delete PDF.');
+//     }
+//     } catch (err) {
+//       console.error('Delete error:', err);
+//       alert('An error occurred.');
+//     }
+//   });
+// });
+
+// document.querySelectorAll('.delete-btn-job').forEach(button => {
+//   button.addEventListener('click', async (e) => {
+//   const jobID = button.dataset.id;
+//   console.log(jobID)
+//   if (!confirm('Are you sure you want to delete this listing?')) return;
+
+//   try {
+    
+//     const res = await fetch(`/jobs/delete/${jobID}`, {
+//       method: 'DELETE',
+//     });
+
+//     const result = await res.json();
+//     if (result.success) {
+//       // Remove item from DOM
+//       const li = button.closest('li');
+//       li.remove();
+//     } else {
+//       alert('Failed to delete PDF.');
+//     }
+//     } catch (err) {
+//       console.error('Delete error:', err);
+//       alert('An error occurred.');
+//     }
+//   });
+// });
 
 document.querySelectorAll('.edit-btn-pdf').forEach(button => {
   button.addEventListener('click', async (e) => {
@@ -201,15 +272,23 @@ textarea.addEventListener("input", () => {
 function toggleForm(formId) {
     const postForm = document.getElementById('uploadForm');
     const jobForm = document.getElementById('jobForm');
+    const reviewForm = document.getElementById('review-form')
 
     if (formId === 'form') {
         const shouldShow = postForm.classList.contains('hidden');
         postForm.classList.toggle('hidden', !shouldShow);
         jobForm.classList.add('hidden');
+        reviewForm.classList.add('hidden')
     } else if (formId === 'jobForm') {
         const shouldShow = jobForm.classList.contains('hidden');
         jobForm.classList.toggle('hidden', !shouldShow);
         postForm.classList.add('hidden');
+        reviewForm.classList.add('hidden')
+    } else if (formId === 'reviewForm') { 
+        const shouldShow = reviewForm.classList.contains('hidden')
+        reviewForm.classList.toggle('hidden', !shouldShow)
+        postForm.classList.add('hidden')
+        jobForm.classList.add('hidden');
     }
 }
 

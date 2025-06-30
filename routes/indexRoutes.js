@@ -54,6 +54,9 @@ routes.post('/upload-pdf', requireAuth, uploadPdf.single('pdf'), store.pdfUpload
 //user deletion of file(s)
 routes.delete('/pdf/delete/:id', requireAuth, store.deletePdf);
 routes.post('/pdf/edit/:id', requireAuth, uploadPdf.single('pdf'), store.editPdf)
+routes.post('/upload-prepublish', requireAuth, uploadPdf.single('pdf'), store.newReview)
+routes.get('/feedback/:slug', requireAuth, pg.feedbackDisplay)
+routes.post('/submit-comments/:id', requireAuth, store.submitComment)
 
 
 //End of indexRoutes.js
