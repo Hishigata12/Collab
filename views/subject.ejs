@@ -1,0 +1,108 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <%- include('banner'); -%>
+   <div class="header-box">
+      <h2 style="width: 32%; text-align: center;"> <%= info.title %> </h2>
+         <div class="search-bar">
+          <form id="search-subject" style="width: 100%" action="/search-subject" method="POST">
+            <div class="search-input">
+                <input type="text" name='query' placeholder="Search all subjects... &#128269" required>
+            </div>
+            <div class="search-options">
+                <div class="search-row">
+                    <input type="checkbox" name="originals" id="check-original" checked/>
+                    <label for="check-original">Original Manuscripts</label>
+                </div>
+                
+                <div class="search-row">
+                    <input type="checkbox" name="methods" id="check-method" checked/>
+                    <label for="check-method">Methodologies</label>
+                </div>
+                
+                <div class="search-row">
+                    <input type="checkbox" name="reviews" id="check-review" checked/>
+                    <label for="check-review">Reviews</label>
+                </div>
+                <div class="search-row">
+                    <input type="checkbox" name="reproductions" id="check-reproduction" checked/>
+                    <label for="check-reproduction">Reproductions</label>
+                </div>
+                <!-- <div class="search-row">
+                    <input type="checkbox" id="check-author" checked/>
+                    <label for="check-author">Authors</label>
+                </div> -->
+            </div>
+            <button type="submit" hidden></button>
+        </form>
+    </div>
+
+    </div>
+  <title>Your Site - Home</title>
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="/css/subject.css">
+</head>
+
+
+<body>
+<div class="main-container">
+    <!-- <div class="subject-info">
+        <h2>Info on the subject <%= info.title %></h2>
+    </div> -->
+ 
+  <div class="new-col index-box">
+    <h3>Latest Content</h3>
+    <ul>
+        <% pdfs.forEach(p => { %>
+            <a href='/pdf/<%= p.slug %>' data-fname="/pdfs/<%= p.filename %>" data-title="<%= p.title %>"
+                data-authors="<%= JSON.parse(p.authors) %>" data-description="<%= p.description %>" 
+                class="list-doc"><li><%= p.title %></li></a>
+        <% }) %>
+ 
+      </ul>
+  </div>
+  
+  <div class="pop-col index-box">
+    <h3>Preview</h3>
+    <div id="preview-info">
+        <div id="title-preview">
+
+        </div>
+        <div id="authors-preview">
+
+        </div>
+        <div id="description-preview">
+
+        </div>
+    </div>
+    <div id="pdf-preview" style="display:none; width:75%; height:auto; border:1px solid gray;">
+        <canvas id="pdf-canvas" style="width:100%;"></canvas>
+    </div>
+
+  </div>
+  <!-- <div class="search-container index-box">
+    <h3>Search Results</h3>
+    <ul id="search-results">
+
+    </ul>
+  </div> -->
+</div>
+<%- include('message') -%>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>const pdfs = <%- JSON.stringify(pdfs) %> </script>
+<script src="/js/main.js"></script>
+<script src="/js/subject.js"></script>
+
+<!-- <script src="/node_modules/socket.io/client-dist/socket.io.min.js"></script> -->
+ <!-- <script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script> -->
+<!-- <script>
+  const socket = io()
+</script> -->
+
+
+</body>
+</html>
+

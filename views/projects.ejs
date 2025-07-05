@@ -18,15 +18,25 @@
         <p>
             <ul class="tag-list">
             <% tagNames.forEach(tag => { %>
-                <li><%= tag %></li>
+                <li class="neon-glow"><%= tag %></li>
             <% }) %>
+            <button id="applaud-btn" data-id="<%= pdf.id %>" 
+            class="bounce-applaud">👏 Claps <span class="count"><%= pdf.claps %></span></button>
+            <button id="report-btn" class="subtle-report">🚨 Report</button>
             </ul>
         </p>
       </div>
-      <h3>Uploaded by <%= pdf.uploaded_by %></h3>
+      <div class='uploaded-div'>
+        <h2>Uploaded by <%= pdf.uploaded_by %></h2>
+        <button class="follow-btn" id="follow-btn" data-id="<%= pdf.uploaded_by %>"></button>
+        <span id="follow-count" class="follow-count">👤 <%= user.subs %></span>
+          <!-- <span id="follow-text"><%= pdf.is_followed ? 'Unfollow' : 'Follow' %></span> -->
+      </div>
       <div id="pdf-description">
         <p><%= pdf.description %></p>
       </div>
+
+
       <section class="comments">
         <h2>Comments</h2>
         <form id="comment-form" method="POST" action="/add-comment/<%= pdf.slug %>">
@@ -50,7 +60,8 @@
       </ul>
     </aside>
   </div>
-  <script src="/js/projects.js"></script>
+  
   <%- include('message') -%>
+  <script src="/js/projects.js"></script>
 </body>
 </html>

@@ -1,0 +1,110 @@
+.new-col, .pop-col {
+    width: 45%;
+    border-radius: 6px;
+}
+
+
+
+.search-input {
+    width: 56%;
+}
+
+#search-subject {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: left;    
+}
+
+input[type="checkbox"] {
+  width: 16px;
+  height: 16px;
+  margin-right: 0.5rem;
+}
+
+.search-row {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start; /* correct value */
+  gap: 0.5rem;
+}
+
+.search-options {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5rem;
+  padding-left: 2rem;
+  width: 36%;
+}
+
+.search-bar input {
+    border: 1px solid #00d8ff;
+    width: 90%;
+    padding: 10px;
+    font-size: 16px;
+    border-radius: 6px;
+    text-align: center;
+    background-color: #2a2a2a;
+    color:rgb(225, 225, 250);
+}
+
+
+.header-box {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 0.5rem 1rem;
+    background: radial-gradient(circle at top left,rgb(115, 176, 204),rgb(193, 202, 204),rgb(135, 185, 202));
+    color: rgb(17, 17, 1);
+    border-radius: 6px;
+    border: solid black 1px;
+    /* box-shadow: 0 0 4px 4px rgba(102, 102, 102, 0.5); */
+    margin-bottom: 1rem;
+    /* margin-top: 1rem; */
+}
+
+label {
+    x-overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap; 
+    width: 100%;
+    /* color: white; */
+}
+
+.search-bar {
+    width: 60%;
+    display: flex;
+    flex-wrap:wrap;
+    align-items: center;
+    flex-direction: row;
+    justfity-content: space-around;
+    padding-left: 2rem;
+    /* margin:10px; */
+}
+
+
+    /* .search-bar {
+      text-align: center;
+      margin: 20px 0;
+      width: 50%;
+      border-radius: 6px;
+    } */
+
+.list-doc {
+    margin: 0.5rem;
+}
+
+#pdf-preview {
+    margin: 0 auto;;
+}
+
+.uploaded-div {
+    padding-right: 3rem;
+}
+
+.uploaded-div h2 {
+    display: inline-block;
+    width: auto;
+    margin-right: 2rem;
+}

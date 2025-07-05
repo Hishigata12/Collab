@@ -38,11 +38,13 @@ routes.post('/logout', auth.logoutErr);
 //dynamic page routing?
 //routes.get('/pages/:slug', pg.pageRoute);
 //display pdf
-routes.get('/pages/:slug', pg.displayPdf);
+routes.get('/pdf/:slug', pg.displayPdf);
 //display random pdf
 routes.get('/random', pg.randPdf);
 //search routing
 routes.post('/search', pg.searchGen);
+routes.get('/search', pg.searchGen2);
+routes.post('/search-subject', pg.searchSubject)
 //comment routing
 routes.post ('/add-comment/:slug', requireAuth, pg.pdfComment);
 
@@ -57,7 +59,20 @@ routes.post('/pdf/edit/:id', requireAuth, uploadPdf.single('pdf'), store.editPdf
 routes.post('/upload-prepublish', requireAuth, uploadPdf.single('pdf'), store.newReview)
 routes.get('/feedback/:slug', requireAuth, pg.feedbackDisplay)
 routes.post('/submit-comments/:id', requireAuth, store.submitComment)
+routes.get('/subject/:slug', pg.subject)
+routes.get('/subject', pg.subjectDefault);
+//jobs
+routes.get('/jobs', pg.jobs);
+routes.post('/jobs', requireAuth, pg.jobsSearch);
+routes.get('/job/:id', pg.viewJob);
+routes.post('/post-job', requireAuth, uploadPdf.single('pdf'), pg.jobsPost);
+routes.delete('/jobs/delete/:id', requireAuth, pg.jobsDelete);
+routes.delete('/feedback/delete/:id', requireAuth, store.feedbackDelete); 
 
+//claps and subs
+routes.post('/give-claps', requireAuth, store.giveClap)
+routes.post('/follow', requireAuth, store.followUser)
+routes.get('/isfollowing/:user', requireAuth, store.isFollowing)
 
 //End of indexRoutes.js
 module.exports = routes;

@@ -95,14 +95,14 @@ header {
       flex-wrap: wrap;
     }
 
-    .search-bar {
+    .search-bar-banner {
       text-align: center;
       margin: 20px 0;
       width: 50%;
       border-radius: 6px;
     }
 
-    .search-bar input {
+    .search-bar-banner input {
       border: 1px solid #00d8ff;
       width: 90%;
       padding: 10px;

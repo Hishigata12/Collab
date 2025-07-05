@@ -1,5 +1,9 @@
 <!DOCTYPE html>
 <head>
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16.png">
+  <link rel="manifest" href="/site.webmanifest">
     <link rel="stylesheet" href="/css/banner.css">
 </head>
 <html>
@@ -15,16 +19,21 @@
       <div>
         <a href="/random"><button class="header-btn">Random</button></a>
       </div>
+   
       <div class="dropdown">
-        <button class="dropbtn">Learn</button>
+        <a href='/subject'><button class="dropbtn">Learn</button></a>
         <div class="dropdown-content">
           <a href="#">Original Studies</a>
           <a href="#">Methodologies</a>
           <a href="#">Review Papers</a>
           <a href="#">Study Replication</a>
-        </div>
+        </div>   
+   
       </div>
-         <div class="dropdown">
+      <div>
+          <a href="/people"><button class="header-btn">People</button></a>
+      </div>
+      <div class="dropdown">
         <button class="dropbtn">Universities</button>
         <div class="dropdown-content">
           <a href="#">The U</a>
@@ -55,7 +64,7 @@
     </div>
     
     </form>
-    <div class="search-bar">
+    <div class="search-bar-banner">
         <form id="search-box" action="/search" method="POST">
             <input type="text" name='query' placeholder="Search the site... &#128269" required>
             <button type="submit" hidden></button>

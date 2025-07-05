@@ -20,7 +20,7 @@ BASE_URL = process.env.BASE_URL
 //guest user page
 exports.guest =(req, res) => {
     const username = req.session.user ? req.session.user.username : 'Guest';
-    res.render('index', { username })
+    res.render('index', { username, items: [] })
 };
 
 //new user
@@ -213,7 +213,7 @@ exports.dashboard = async (req, res) => {
     const user = req.session.user
     console.log(req.session.user)
     // console.log(username)
-     dbPdf.all(`
+     db.all(`
         SELECT * FROM pdfs WHERE uploaded_by = ?`, [user.username], (err, pdf) => {
             if (err || !pdf) {
                 console.log('choke')
@@ -226,7 +226,7 @@ exports.dashboard = async (req, res) => {
                 res.send('no PDF found')
             }
             // console.log(pdf)
-             dbPdf.all(`
+             db.all(`
               SELECT * FROM jobs WHERE username = ?`, [user.username], (err, jobs) => {
                 if (err || !jobs.length === 0) {
                   jobs = [{
@@ -240,7 +240,7 @@ exports.dashboard = async (req, res) => {
                     active: 0
                   }]
                 }
-                   dbPdf.all(`
+                   db.all(`
               SELECT * FROM prepublish WHERE uploaded_by = ?`, [user.username], (err, review) => {
                 if (err) return res.send(err)
                 if (!jobs.length === 0) {

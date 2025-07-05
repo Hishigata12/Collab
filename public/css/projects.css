@@ -6,6 +6,9 @@ body {
   background: #f0f4f8;
   color: #1c1c1c;
 }
+/* h2 {
+  display: inline-block;
+} */
 
 .container {
   display: flex;
@@ -125,17 +128,169 @@ body {
 .tag-list {
   list-style: none;
   padding: 0;
-  margin: 10px 0;
+  margin: 0;
   display: flex;
   flex-wrap: wrap; /* allows wrapping to new line if too long */
   gap: 8px;
 }
 
-.tag-list li {
+/* .tag-list li {
   background: #0077b6;
   color: white;
   padding: 5px 10px;
   border-radius: 15px;
   font-size: 0.9em;
   white-space: nowrap;
+} */
+
+.uploaded-div {
+    
+}
+
+.uploaded-div h2 {
+    display: inline-block;
+    width: auto;
+    margin-right: 1rem;
+}
+
+.follow-btn, .follow-count {
+  background: linear-gradient(135deg, #ff5f6d, #ffc371);
+  color: white;
+  border: none;
+  padding: 0.6rem 1.4rem;
+  font-size: 1rem;
+  border-radius: 2rem;
+  cursor: pointer;
+  box-shadow: 0 0 0 0 rgba(255, 95, 109, 0.7);
+  transition: box-shadow 0.3s ease;
+}
+
+
+
+.follow-btn:hover {
+  box-shadow: 0 0 10px 4px rgba(255, 95, 109, 0.4);
+}
+
+/* .follow-btn.outline-fill {
+  background: transparent;
+  color: #2196f3;
+  padding: 0.6rem 1.4rem;
+  font-size: 1rem;
+  border: 2px solid #2196f3;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.follow-btn.outline-fill:hover {
+  background: #2196f3;
+  color: white;
+} */
+
+.neon-glow {
+  background: #111;
+  color: #0ff;
+  border: 2px solid #0ff;
+  padding: 0.6rem 1rem;
+  font-size: 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  text-align: center;
+  align-items: center;
+  text-shadow: 0 0 3px #0ff, 0 0 5px #0ff;
+  box-shadow: 0 0 5px #0ff;
+  transition: transform 0.2s ease, box-shadow 0.3s ease;
+}
+
+.neon-glow:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 12px #0ff, 0 0 24px #0ff;
+}
+
+#report-btn.danger-report {
+  background-color: #b00020;
+  color: white;
+  border: none;
+  padding: 0.6rem 1.2rem;
+  border-radius: 6px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+#report-btn.danger-report:hover {
+  background-color: #d32f2f;
+}
+
+#report-btn.subtle-report {
+  background: transparent;
+  color: #c62828;
+  border: 1.5px solid #c62828;
+  padding: 0.4rem 0.8rem;
+  border-radius: 5px;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-left: auto;
+}
+
+#report-btn.subtle-report:hover {
+  background: #c6282815;
+}
+
+#applaud-btn.bounce-applaud {
+  background-color: #ffe082;
+  color: #333;
+  border: none;
+  padding: 0.6rem 1.2rem;
+  font-size: 1rem;
+  border-radius: 1.5rem;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: transform 0.15s ease-in-out;
+  font-weight: 500;
+  margin: auto;
+}
+
+#applaud-btn.bounce-applaud:hover {
+  transform: scale(1.1);
+  background-color: #ffd54f;
+}
+
+#applaud-btn.bounce-applaud:active {
+  animation: clap-bounce 0.3s ease;
+}
+
+@keyframes clap-bounce {
+  0% { transform: scale(1); }
+  30% { transform: scale(1.2); }
+  60% { transform: scale(0.95); }
+  100% { transform: scale(1); }
+}
+
+#applaud-btn .count {
+  background: #fff8e1;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.9rem;
+}
+
+#applaud-btn.glow-applaud {
+  background: transparent;
+  color: #ff9800;
+  border: 2px solid #ff9800;
+  padding: 0.5rem 1.2rem;
+  border-radius: 12px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  box-shadow: 0 0 0 transparent;
+}
+
+#applaud-btn.glow-applaud:hover {
+  background-color: #fff3e0;
+  box-shadow: 0 0 8px rgba(255, 152, 0, 0.4);
+  transform: translateY(-2px);
 }

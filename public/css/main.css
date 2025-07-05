@@ -50,7 +50,7 @@
 
     .search-container {
       flex: 1;
-      max-width: 15%;
+      max-width: 25%;
       margin: 1em;
       /* background: white; */
       /* padding: 1.5em; */
@@ -118,4 +118,8 @@
     .auth-btn:hover {
        background:rgb(3, 130, 150);
       color: rgb(210, 210, 240);
+    }
+
+    .search-result {
+      padding-bottom: 0.5rem;
     }

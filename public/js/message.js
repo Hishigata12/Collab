@@ -1,4 +1,4 @@
-const socket = io();
+const socket = io(); // io('https://theshape.org:3500)
 const chatInput = document.getElementById('chat-input');
 const chatMessages = document.getElementById('chat-messages');
 const chatWindow = document.getElementById('chat-window');

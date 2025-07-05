@@ -5,41 +5,59 @@
 //     window.location.href = '/register'
 // })
 
+
+document.addEventListener("DOMContentLoaded", () => {
+
+
 const searchResults = document.getElementById('search-results')
 const searchBox = document.getElementById('search-box')
+const newsBox = document.getElementById('news-box')
+const searchContainer = document.getElementById('search-container')
 
-searchBox.addEventListener('submit', function (e) {
-  e.preventDefault();
-  const formData = new FormData(this);
-    // console.log(formData)
-  fetch('/search', {
-    method: 'POST',
-    body: new URLSearchParams(formData)
-  })
-  .then(res => res.json())
-  .then(data => {
-    console.log('Server says:', data);
-    console.log(data.length)
-    let list = ''
+// searchBox.addEventListener('submit', function (e) {
+//   e.preventDefault();
+
+// })
+//   const formData = new FormData(this);
+//     // console.log(formData)
+//   fetch('/search', {
+//     method: 'POST',
+//     body: new URLSearchParams(formData)
+//   })
+//   .then(res => res.json())
+//   .then(data => {
+//     console.log('Server says:', data);
+//     console.log(data.length)
+//     let list = ''
+//     data.forEach(d => {
+//         list += `<li><a href='/pdf/${d.slug}'>${d.title} by 
+//         ${d.uploaded_by}  -  ${d.uploaded_at.substring(0,10)}</a></li>`
+//         // list += `<a href='/pdfs/${d.slug}><li>${d.title} by 
+//         // ${d.uploaded_by}  -  ${d.uploaded_at.substring(0,10)}</li></a>`
+//     })
+//     console.log(list)
+//      searchResults.innerHTML = list
+//      this.reset()
+// //     fetch('/studies', {
+// //         method: 'POST',
+// //         headers: {
+// //     'Content-Type': 'application/json'
+// //   },
+// //     body: JSON.stringify(data)
+// //     })
+//     // do something with the response.then
+  // });
+
+  let list = ''
     data.forEach(d => {
-        list += `<li><a href='/pdf/${d.slug}'>${d.title} by 
+        list += `<li class='search-result'><a href='/pdf/${d.slug}'>${d.title} by 
         ${d.uploaded_by}  -  ${d.uploaded_at.substring(0,10)}</a></li>`
         // list += `<a href='/pdfs/${d.slug}><li>${d.title} by 
         // ${d.uploaded_by}  -  ${d.uploaded_at.substring(0,10)}</li></a>`
     })
+    
     console.log(list)
-     searchResults.innerHTML = list
-     this.reset()
-//     fetch('/studies', {
-//         method: 'POST',
-//         headers: {
-//     'Content-Type': 'application/json'
-//   },
-//     body: JSON.stringify(data)
-//     })
-    // do something with the response
-  });
-});
+    searchResults.innerHTML = list
 
-
+})
 
