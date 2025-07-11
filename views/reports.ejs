@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link rel="stylesheet" href="/css/generic.css">
+        <%- include('banner') -%>
+    </head>
+    <body>
+        
+        <div id="main-div">
+             <div class="search-input"  style="width: 100%;">
+                    <input id='search-bar'type="text" name='query' autocomplete="off" placeholder="Search all reports... &#128269" required>
+                    <checkbox id="resolved-checkbox">
+                        <label for="resolved-checkbox">Show Resolved</label>
+                        <input type="checkbox" id="resolved-checkbox-input" name="resolved">
+                    </checkbox>              
+                </div>
+            <ul id="report-list">
+                <!-- <% if (reports.length > 0) { %>
+                    <% reports.forEach(report => { %>
+                        <% if (!report.resolved) { %>
+                        <li>
+                            <a href="/pdfs/<%= report.id %>" class="view-report" data-id="<%= report.id %>">
+                                <%= report.reason %> <br>
+                                 reported by <%= report.reported_by %>  <br> on <%= report.created_at %>
+                            </a>
+                        </li>
+                        <% } %>
+                    <% }) %>
+                <% } else { %>
+                    <p>No reports available</p>
+                <% } %>    -->
+            </ul>
+        </div>
+        <%- include('message') -%>
+        <script>const reports=<%- JSON.stringify(reports) %></script>
+        <script src="/js/reports.js"></script>
+        <script>
+            // console.log(reports)
+            const reportList = document.getElementById('report-list');
+            const resolvedCheckbox = document.getElementById('resolved-checkbox-input');
+            const searchBar = document.getElementById('search-bar');
+            searchBar.addEventListener('input', function() {
+                gatherReports();
+            });
+
+            function renderReports(reports) {
+                reportList.innerHTML = '';
+                const filteredReports = reports.filter(report =>
+                    resolvedCheckbox.checked || !report.resolved
+                );
+                filteredReports.forEach(report => {
+                    // if (!resolvedCheckbox.checked && report.resolved) return;
+                    const li = document.createElement('li');
+                    li.innerHTML = `<a href="/pdfs/${report.reported}" class="view-report" data-id="${report.id}">
+                                    ${report.reason} <br>
+                                    reported by ${report.reported_by} <br> on ${report.created_at}
+                                    </a><button onclick='resolveReport(this)' data-id='${report.id}' class='resolve-report'>
+                                         ${report.resolved ? 'Unresolve' : 'Resolve'}</button>`;
+                    reportList.appendChild(li);
+                });
+            }
+            function gatherReports() {
+                    const query = searchBar.value.toLowerCase();
+                    const filteredReports = reports.filter(report => 
+                    report.reason.toLowerCase().includes(query) || 
+                    report.reported_by.toLowerCase().includes(query) || 
+                    report.reported.toString().includes(query)
+                );
+                renderReports(filteredReports);
+            }
+            resolvedCheckbox.addEventListener('change', function() {
+                gatherReports();
+            });
+
+            function resolveReport(button) {
+                // const reportId = event.target.getAttribute('data-id');
+                
+                const reportId = button.dataset.id
+                fetch(`/resolve-report/${reportId}`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ resolved: event.target.textContent.includes('Unresolve') })
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        gatherReports();
+                    } else {
+                        alert('Failed to update report status');
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+            }
+           
+            // Initial render  
+            renderReports(reports)
+        </script>
+    </body>
+</html>

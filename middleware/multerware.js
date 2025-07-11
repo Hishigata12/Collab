@@ -8,6 +8,14 @@ const imageStorage = multer.diskStorage({
     }
 })
 
+const featureImage = multer.diskStorage({
+    destination: './public/images',
+    filename: (req, file, cb) => {
+        cb(null, 'featured.jpg')
+    }
+})
+const uploadFeature = multer({storage: featureImage})
+
 const upload  = multer({ storage: imageStorage })
 
 const pdfStorage = multer.diskStorage({
@@ -23,4 +31,4 @@ const pdfStorage = multer.diskStorage({
 
 const uploadPdf = multer({ storage: pdfStorage });
 
-module.exports = {upload, uploadPdf}
+module.exports = {upload, uploadPdf, uploadFeature}

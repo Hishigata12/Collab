@@ -7,13 +7,13 @@ const db = new sqlite3.Database('./users.db');
 // db.serialize(() => {
   // db.run(`CREATE TABLE IF NOT EXISTS users (
   //   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  //   username TEXT UNIQUE,
+  //   username TEXT UNIQUE CHECK (length(username) < 32),
   //   password TEXT,
   //   email TEXT UNIQUE, 
   //   verified INTEGER DEFAULT 0,
   //   subs INTEGER DEFAULT 0,
-  //   first_name TEXT NOT NULL,
-  //   last_name TEXT NOT NULL
+  //   first_name TEXT NOT NULL CHECK (length(username) < 64),
+  //   last_name TEXT NOT NULL CHECK (length(username) < 64)
 //   )`);
 //   db.run(`CREATE TABLE IF NOT EXISTS msgs (
 //   id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -29,17 +29,20 @@ const db = new sqlite3.Database('./users.db');
   //   reason TEXT NOT NULL CHECK (length(reason) < 512),
   //   created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
   //   FOREIGN KEY (reported_by) REFERENCES users(username),
-  //   FOREIGN KEY (reported) REFERENCES pdfs(id))`, (err) => {
+  //   FOREIGN KEY (reported) REFERENCES pdfs(id),
+  //   resolved INTEGER NOT NULL DEFAULT 0)`, (err) => {
   //     if (err) console.error("Error adding Table:", err.message)
   //     else console.log('Made reports successfully')
   //   })
 //   db.run(`CREATE TABLE IF NOT EXISTS subs (
 //     user_id INTEGER NOT NULL,
 //     sub_id INTEGER NOT NULL,
-//     FOREIGN KEY (user_id) REFERENCES users(id),
-//     FOREIGN KEY (sub_id) REFERENCES users(id))`, (err) => {
+//     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+//     FOREIGN KEY (sub_id) REFERENCES users(id) ON DELETE CASCADE,
+//     UNIQUE (user_id, sub_id))`, (err) => {
 //       if (err) console.error("Error adding Table:", err.message)
 //       else console.log('Made Table successfully')
+//  })
 
 //   db.run(`CREATE TABLE IF NOT EXISTS claps (
 //     username TEXT NOT NULL,
@@ -49,6 +52,20 @@ const db = new sqlite3.Database('./users.db');
 //       if (err) console.error("Error adding Table:", err.message)
 //       else console.log('Made Table successfully')
 // });
+
+// db.run('DROP TABLE IF EXISTS subs', (err) => {
+//   if (err) console.error('Failed to delete table', err.message)
+//   else console.log('Table Deleted')
+// })
+// db.run(`CREATE TABLE IF NOT EXISTS follows (
+//   follower INTEGER NOT NULL,
+//   followed INTEGER NOT NULL, 
+//   FOREIGN KEY (follower) REFERENCES users(id) ON DELETE CASCADE,
+//   FOREIGN KEY (followed) REFERENCES users(id) ON DELETE CASCADE,
+//   UNIQUE (follower, followed))`, (err) => {
+//   if (err) console.error("Error adding Table:", err.message)
+//   else console.log('Made follows successfully')
+//   })
 
 // Database
 const dbPdf = new sqlite3.Database('./db.sqlite')
@@ -114,22 +131,23 @@ const dbPdf = new sqlite3.Database('./db.sqlite')
   //     else console.log('Made jobs successfully')
   //   })
 //   )`);
-    // db.run('PRAGMA foreign_keys = ON')
+    db.run('PRAGMA foreign_keys = ON')
 // dbPdf.run(`ALTER TABLE pdfs ADD COLUMN claps INTEGER DEFAULT 0`, (err) => {
 //   console.log('claps added')
 // })
 // dbPdf.run('UPDATE pdfs SET claps = 0', (err) => {
 //   console.log('claps to 0')
 // })
-// db.run('ALTER TABLE users ADD COLUMN first_name TEXT NOT NULL', (err) => {
+// db.run('ALTER TABLE reports ADD COLUMN resolved INTEGER NOT NULL DEFAULT 0', (err) => {
 //   console.log('fname added')
 // })
 // db.run('ALTER TABLE users ADD COLUMN last_name TEXT NOT NULL', (err) => {
 //   console.log('last added')
 // })
-// dbPdf.run('ALTER TABLE prepublish ADD COLUMN type INTEGER DEFAULT 1', (err) => {
-//   console.log('type added')
-// }
+// db.run("ALTER TABLE users ADD COLUMN last_name TEXT NOT NULL DEFAULT 'dingdong' CHECK (length(first_name) < 64)", (err) => {
+//   if (err) console.log(err)
+//   console.log('fname added added')
+// })
 // )
 // dbPdf.run('UPDATE prepublish SET type = 1', (err) => {
 //   console.log('type set to 1')
@@ -171,8 +189,59 @@ const dbPdf = new sqlite3.Database('./db.sqlite')
 //     else console.log('feedblack added')
 //   })
 
-// dbPdf.run('DROP TABLE IF EXISTS tags', (err) => {
+
+// db.run(`
+//   CREATE TABLE IF NOT EXISTS currentAffs (
+//   user_id INTEGER NOT NULL,
+//   aff TEXT NOT NULL CHECK (length(aff) < 64),
+//   FOREIGN KEY (user_id) REFERENCES users(id),
+//   UNIQUE (user_id, aff))`, (err) => {
+//     if (err) console.error("Error adding Table:", err.message)
+//      else console.log('current affs added')
+//   })
+
+//   db.run(`
+//   CREATE TABLE IF NOT EXISTS pastAffs (
+//   user_id INTEGER NOT NULL,
+//   aff TEXT NOT NULL CHECK (length(aff) < 64),
+//   FOREIGN KEY (user_id) REFERENCES users(id),
+//   UNIQUE (user_id, aff))`, (err) => {
+//     if (err) console.error("Error adding Table:", err.message)
+//      else console.log('past affs added')
+//   })
+
+//   db.run(`
+//   CREATE TABLE IF NOT EXISTS linkAffs (
+//   user_id INTEGER NOT NULL,
+//   link TEXT NOT NULL CHECK (length(link) < 96),
+//   FOREIGN KEY (user_id) REFERENCES users(id),
+//   UNIQUE (user_id, link))`, (err) => {
+//     if (err) console.error("Error adding Table:", err.message)
+//      else console.log('link affs added')
+//   })
+
+// db.run('DROP TABLE IF EXISTS features', (err) => {
 //   if (err) console.error('Failed to delete table', err.message)
 //   else console.log('Table Deleted')
 // })
+
+// db.run(`CREATE TABLE IF NOT EXISTS features (
+//   id INTEGER PRIMARY KEY,
+//   link TEXT NOT NULL,
+//   details TEXT CHECK (length(details) < 256))`, (err) => {
+//     if (err) console.error("Error adding Table:", err.message)
+//      else console.log('link affs added')
+//   })
+// db.run(`ALTER TABLE news ADD COLUMN time DATETIME DEFAULT CURRENT_TIMESTAMP`, (err) => {
+//       if (err) console.error("Error adding Table:", err.message)
+//      else console.log('link affs added')
+// })
+
+// db.run(`CREATE TABLE IF NOT EXISTS news (
+//   id INTEGER PRIMARY KEY,
+//   content TEXT NOT NULL CHECK (length(content) < 256))`,(err) => {
+//     if (err) console.error("Error adding Table:", err.message)
+//      else console.log('link affs added')
+//   })
+
 module.exports = { db, dbPdf }

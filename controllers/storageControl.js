@@ -11,7 +11,8 @@ const slugify = require('slugify');
 const session = require('express-session');
 const bcrypt = require('bcrypt');
 //Import functions
-const { isStrongPassword, transporter } = require('../middleware/controlware')
+const { isStrongPassword, transporter } = require('../middleware/controlware');
+const { emitWarning } = require('process');
 
 //Site Storage Controller functions
 //image upload and verify
@@ -332,8 +333,8 @@ exports.followUser = (req, res) => {
 exports.isFollowing = (req, res) => {
     const me = req.session.user.username;
     const you = req.params.user;
-    console.log(you)
-    console.log(me)
+    // console.log(you)
+    // console.log(me)
     db.get(`SELECT * FROM subs WHERE user_id = ? AND sub_id = ?`, [me, you], (err, row) => {
         if (err) {
             console.error('Failed to check following status:', err.message);
@@ -345,4 +346,50 @@ exports.isFollowing = (req, res) => {
             return res.json({ success: true, following: false });
         }
     })
+}
+
+exports.viewReports = (req, res) => {
+    const admins = process.env.ADMINS
+    console.log(admins)
+    console.log(admins.includes(req.session.user.username))
+    if (!admins.includes(req.session.user.username)) {
+        return res.status(403).send('Forbidden');
+    }
+    db.all(`SELECT * FROM reports`, (err, rows) => {
+        if (err) {
+            console.error('Failed to fetch reports:', err.message);
+            return res.status(500).json({ success: false });
+        }
+        res.render('reports', { success: true, reports: rows });
+    });
+}
+
+exports.featuredContent = (req, res) => {
+    console.log(req.body)
+    
+    const { type, link, details } = req.body
+    username = req.session.user.username
+    const sql = `INSERT INTO features (id, link, details)
+    VALUES (?, ?, ?) ON CONFLICT (id) DO UPDATE SET link = excluded.link, details = excluded.details;`
+    if (!process.env.ADMIN.includes(username)) return res.send('Authorization prohibited :(')
+    db.run(sql, [type, link, details], (err) => {
+        if (err) {
+            console.log(err)
+            return res.json({success: false})
+        }
+            else res.json({success: true, type, link, details})
+    })
+}
+
+exports.addNews = (req, res) => {
+    const { details } = req.body
+    username = req.session.user.username
+    if (!process.env.ADMIN.includes(username)) return res.send('Authorization prohibited :(')
+    db.run(`INSERT INTO news (content) VALUES (?)`, [details], (err) => {
+    if (err) {
+            console.log(err)
+            return res.json({success: false})
+        }
+            else res.json({success: true })
+})
 }

@@ -9,11 +9,8 @@
       <h2 style="width: 32%; text-align: center;"> <%= info.title %> </h2>
          <div class="search-bar">
           <form id="search-subject" style="width: 100%" action="/search-subject" method="POST">
-            <div id="search-form" style="width: 100%">
-                <div class="search-input" id='search-bars' style="width: 100%;">
-                    <input type="text" name='query' placeholder="Search all subjects... &#128269" required>                  
-                </div>
-                <button id="add-search">+</button><button id="remove-search" class="hidden">-</button>
+            <div class="search-input">
+                <input type="text" name='query' placeholder="Search all subjects... &#128269" required>
             </div>
             <div class="search-options">
                 <div class="search-row">
@@ -44,7 +41,7 @@
     </div>
 
     </div>
-  <title>Your Site - Home</title>
+  <title>Collab Users</title>
   <link rel="stylesheet" href="css/main.css">
   <link rel="stylesheet" href="/css/subject.css">
 </head>

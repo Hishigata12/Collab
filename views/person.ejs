@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+
+<head> 
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="/css/dashboard.css">
+    <%- include('banner'); -%>
+</head>
+
+
+<body>
+    <div class="title">
+        <h1><%= me.first_name %> <%= me.last_name %> - (<%= me.username %>)</h1>
+        <h3>Followers: <%= me.subs %></h3>
+    </div>
+    
+            <h2>Articles Published</h2>
+            <ul class="upload-list" id="pdf-list">
+          
+            </ul>
+            <h2>Manuscripts/Experimental Plans for Review</h2>
+            <ul class="upload-list" id="prepublish-list">
+                      <% review.forEach(p => { %>
+                    <li>
+                        <a href="/feedback/<%= p.slug %>"><%= p.title %></a>
+                        <!-- <button class="edit-btn-pdf" data-id="<%= p.id %>">&#9881; </button> -->
+                        <button class="delete-btn-feedback" data-id="<%= p.id %>">🗑️ </button>
+                    </li>
+                <% }) %>
+            </ul>
+            <h2>Job Listings</h2>
+            <ul class="upload-list" id="job-postings">
+             
+            </ul>
+        </div>
+        <div class="half">
+                <h2>right panel</h2>
+                <div id="pdf-preview" style="display:none; width:75%; height:auto; border:1px solid gray;">
+                    <canvas id="pdf-canvas" style="width:100%;"></canvas>
+                </div>
+                    <h3> Current Affilliations</h3>
+                <div id="current-div"></div>
+                <h3> Past Affiliations</h3>
+                <div id="past-div"></div>
+                <h3> Links </h3>
+                <div id="link-div"></div>
+                <div class="main-container">
+                <div class="media-box">
+                    <h3>Featured Video</h3>
+                    <iframe src="https://www.youtube.com/embed/dQw4w9WgXcQ" allowfullscreen></iframe>
+
+                    <h3>Latest Image</h3>
+                    <img src="/images/launch2.jpg" width="400px" alt="Latest Image">
+                </div>
+                </div>
+        </div>
+    </div>
+    <%- include('message') -%>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script>
+        const pdfs = <%- JSON.stringify(pdf) %>;
+        const reviews = <%- JSON.stringify(review) %>;
+        const jobs = <%- JSON.stringify(jobs) %>;
+        const user = <%- JSON.stringify(user) %>;
+        const caff = <%- JSON.stringify(caff) %>;
+        const paff = <%- JSON.stringify(paff) %>;
+        const laff = <%- JSON.stringify(laff) %>;
+    </script>
+    <!-- <form action="/logout" method="POST">
+        <button type="submit">Logout</button>
+    </form> -->
+    <!-- <script src="/js/dashboard.js"></script> -->
+<script src="/js/person.js"></script>
+</body>
+</html>

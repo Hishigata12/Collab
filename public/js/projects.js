@@ -46,6 +46,7 @@ followBtn.addEventListener('click', async (e) => {
         }
         else {
         console.error('Failed to follow');
+        followBtn.textContent = `Login to Follow`;
       }
        document.getElementById('follow-count').textContent = `👤 ${data.subs}`
     })
@@ -64,8 +65,70 @@ document.addEventListener("DOMContentLoaded", () => {
       if (!data.following) {
         followBtn.textContent = `Follow`;
       }
-    }
+    } else followBtn.textContent = `Login to Follow`;
   })
 })
   
+const reportBtn = document.getElementById('report-btn')
+const reportBtns = document.querySelectorAll('.subtle-report')
+reportBtns.forEach(btn => {
+  btn.addEventListener('click', async (e) => {
+    const form = document.getElementById('commentForm');
+    const rect = e.target.getBoundingClientRect();
+    form.style.left = `${rect.left + window.scrollX}px`;
+    form.style.top = `${rect.bottom + window.scrollY + 8}px`;
+    form.style.display = 'block';
+  });
+});
+// reportBtn.addEventListener('click', async (e) => {
+//   const form = document.getElementById('commentForm');
+
+//   // Get button position
+//   const rect = e.target.getBoundingClientRect();
+
+//   // Position form near the button
+//   form.style.left = `${rect.left + window.scrollX}px`;
+//   form.style.top = `${rect.bottom + window.scrollY + 8}px`;
+
+//   // Toggle visibility
+//   form.style.display = (form.style.display === 'none' || !form.style.display) ? 'block' : 'none';
+// })
+
+// document.addEventListener('click', (event) => {
+//   const form = document.getElementById('commentForm');
+//   // const button = document.getElementById('showFormBtn');
+
+//   if (!form.contains(event.target) && event.target !== button) {
+//     form.style.display = 'none';
+//   }
+// });
+
+document.getElementById('reportForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const formData = new FormData(e.target);
+  const data = Object.fromEntries(formData.entries());
+  console.log({ data, pdf })
+  // console.log(pdf)
+
+  try {
+    const response = await fetch('/report', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ data, pdf })
+    });
+
+    const result = await response.json();
+    if (result.success) {
+      alert('Report submitted successfully');
+      document.getElementById('commentForm').reset();
+      document.getElementById('commentForm').style.display = 'none';
+    } else {
+      alert('Failed to submit report');
+    }
+  } catch (error) {
+    console.error('Error submitting report:', error);
+  }
+});
 

@@ -46,7 +46,8 @@
         </form>
         <ul class="comment-list">
           <% comments.forEach(comment => { %>
-            <li><strong><%= comment.user %>:</strong> <%= comment.text %></li>
+            <li><a href='/user/<%= comment.user %>'<strong><%= comment.user %>:</strong></a> <%= comment.text %>
+              <button data-user="<%= comment.user %>" class="subtle-report">🚨 Report</button></li>
           <% }) %>
         </ul>
       </section>
@@ -60,8 +61,15 @@
       </ul>
     </aside>
   </div>
+  <div id="commentForm" class="report-form">
+    <form id="reportForm">
+      <textarea name='reason' placeholder="Write your comment..." rows="4" cols="30"></textarea><br>
+      <button type="submit" class="report-btn subtle-report">Submit</button>
+    </form>
+  </div>
   
   <%- include('message') -%>
+  <script>const pdf = <%- JSON.stringify(pdf) %> </script>
   <script src="/js/projects.js"></script>
 </body>
 </html>

@@ -1,5 +1,5 @@
 const {Router} = require('express');
-const {upload, uploadPdf} = require('../middleware/multerware')
+const {upload, uploadPdf, uploadFeature} = require('../middleware/multerware')
 const { requireAuth } = require('../middleware/middleware.js')
 // const {route} = require('express/lib/application');
 
@@ -36,6 +36,7 @@ routes.post('/logout', auth.logoutErr);
 
 //General page controls
 //dynamic page routing?
+routes.get('/pdfs/:id', pg.pdfReroute)
 //routes.get('/pages/:slug', pg.pageRoute);
 //display pdf
 routes.get('/pdf/:slug', pg.displayPdf);
@@ -64,7 +65,7 @@ routes.get('/subject', pg.subjectDefault);
 //jobs
 routes.get('/jobs', pg.jobs);
 routes.post('/jobs', requireAuth, pg.jobsSearch);
-routes.get('/job/:id', pg.viewJob);
+routes.get('/jobs/:id', pg.viewJob);
 routes.post('/post-job', requireAuth, uploadPdf.single('pdf'), pg.jobsPost);
 routes.delete('/jobs/delete/:id', requireAuth, pg.jobsDelete);
 routes.delete('/feedback/delete/:id', requireAuth, store.feedbackDelete); 
@@ -73,6 +74,24 @@ routes.delete('/feedback/delete/:id', requireAuth, store.feedbackDelete);
 routes.post('/give-claps', requireAuth, store.giveClap)
 routes.post('/follow', requireAuth, store.followUser)
 routes.get('/isfollowing/:user', requireAuth, store.isFollowing)
+
+//reports
+routes.post('/report', requireAuth, auth.makeReport)
+routes.get('/reports', requireAuth, store.viewReports)
+routes.post('/resolve-report/:id', requireAuth, auth.resolveReport)
+
+//users
+routes.get('/user/:username', pg.userProfile);
+routes.post('/profile/edit', requireAuth, auth.editProfile)
+routes.post('/add-aff', requireAuth, upload.none(), auth.addAff)
+
+//database viewing
+routes.get('/show/:db', auth.viewAllUsers)
+
+// featured content
+routes.post('/change-features', requireAuth, store.featuredContent)
+routes.post('/change-feature-image', requireAuth, uploadFeature.single('file'), store.featuredContent)
+routes.post('/add-news', requireAuth, store.addNews)
 
 //End of indexRoutes.js
 module.exports = routes;

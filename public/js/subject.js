@@ -13,7 +13,10 @@ const showTitle = document.getElementById('title-preview');
 const showAuthors = document.getElementById('authors-preview');
 const showDescription = document.getElementById('description-preview');
 const showInfo = document.getElementById('preview-info');
+const addSearch = document.getElementById('add-search');
 
+let t, a, d, a2, a3;
+let searchBars = 1;
 links.forEach(link => {
     link.addEventListener('mouseenter', () => {
         const url = link.dataset.fname;
@@ -67,3 +70,46 @@ links.forEach(link => {
     });
 });
 
+addSearch.addEventListener('click', (e) => {
+    e.preventDefault();
+    // console.log(searchBars)
+    if (searchBars < 5) {
+        searchBars++;
+        const newSearch = document.createElement('input');
+        newSearch.type = 'text';
+        newSearch.name = `query${searchBars}`
+        newSearch.placeholder = 'And...';
+        document.getElementById('search-bars').appendChild(newSearch);
+        
+        newSearch.addEventListener('input', () => {
+            const query = newSearch.value.toLowerCase();
+            links.forEach(link => {
+                const title = link.dataset.title.toLowerCase();
+                const authors = link.dataset.authors.toLowerCase();
+                if (title.includes(query) || authors.includes(query)) {
+                    link.style.display = '';
+                } else {
+                    link.style.display = 'none';
+                }
+            });
+        });
+    }
+    if (searchBars > 1) {
+    document.getElementById('remove-search').classList.toggle('hidden', false)
+}
+})
+
+document.getElementById('remove-search').addEventListener('click', (e) => {
+    e.preventDefault();
+    if (searchBars > 1) {
+        searchBars--;
+        const searchBarsDiv = document.getElementById('search-bars');
+        const lastSearch = searchBarsDiv.lastElementChild;
+        if (lastSearch) {
+            searchBarsDiv.removeChild(lastSearch);
+        }
+    }
+    if (searchBars === 1) {
+        document.getElementById('remove-search').classList.toggle('hidden', true);
+    }
+})

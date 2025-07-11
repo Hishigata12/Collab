@@ -108,10 +108,17 @@ exports.searchGen2 = (req, res) => {
     if (err) return console.error(err);
     // if (rows) results.push(rows)
     console.log({ items: rows, searchTerm }); // display ordered results
-    res.render('index', { items: rows, searchTerm, username })
+        db.all(`SELECT * FROM features`, [],  (err, features) => {
+        if (err) return res.send('fucked up bro')
+            db.all(`SELECT * FROM news ORDER BY time DESC LIMIT 10`, (err, news) => {
+        if (err) return res.send('no news bro')
+      res.render('index', { items: rows, searchTerm, username, features, news })
     // res.json(rows)
   })
+})
+  })
 }
+  
 
 
 //comment controls (consider separate controller for advanced commenting features)
@@ -347,3 +354,109 @@ exports.jobsDelete = (req, res) => {
         })
       })
     }
+
+    exports.pdfReroute = (req, res) => {
+      const id = req.params.id;
+      db.get('SELECT * FROM pdfs WHERE id = ?', [id], (err, pdf) => {
+        if (err || !pdf) {
+          return res.status(404).send('PDF not found');
+        }
+        res.redirect(`/pdf/${pdf.slug}`);
+      })
+    }
+
+    exports.userProfile = (req, res) => {
+    // const username = req.session.user.username
+    const user = req.session.user
+    username = req.params.username.toLowerCase().trim()
+    // console.log(username)
+     db.all(`
+        SELECT * FROM pdfs WHERE uploaded_by = ? COLLATE NOCASE`, [username], (err, pdf) => {
+            if (err || !pdf) {
+                console.log('choke')
+                pdf = [{
+                    title: '',
+                    filename: '',
+                    uploaded_at: '',
+                    uploaded_by: ''
+                }]
+                return res.send('no PDF found')
+            }
+            // console.log(pdf)
+             db.all(`
+              SELECT * FROM jobs WHERE username = ? COLLATE NOCASE`, [username], (err, jobs) => {
+                if (err || !jobs.length === 0) {
+                  jobs = [{
+                    id: 0,
+                    title: '',
+                    username: '',
+                    description: '',
+                    reqs: '',
+                    contact: '',
+                    pdf: '',
+                    active: 0
+                  }]
+                }
+                   db.all(`
+              SELECT * FROM prepublish WHERE uploaded_by = ? COLLATE NOCASE`, [username], (err, review) => {
+                if (err) return res.send(err)
+                if (!jobs.length === 0) {
+                  review = [{
+                    id: 0,
+                    title: '',
+                    username: '',
+                    description: '',
+                    reqs: '',
+                    contact: '',
+                    pdf: '',
+                    active: 0, 
+                    type: 1,
+                  }]
+                }
+                // console.log(review, jobs, pdf)
+                db.get(`SELECT * FROM users WHERE username = ? COLLATE NOCASE`, [username], (err, me) => {
+                  // console.log(me)  
+                  if (err) {
+                        console.error('Error fetching user:', err.message);
+                        return res.status(500).send('Failed to fetch user data');
+                    }
+                    if (!user) {
+                        return res.status(404).send('User not found');
+                    }
+                    // console.log(user)
+                       db.all(`SELECT * FROM currentAffs WHERE user_id = ?`, [me.id], (err, caff) => {
+                           if (err) {
+                        console.error('Error fetching user:', err.message);
+                        return res.status(500).send('Failed to fetch user data');
+                        }
+                        if (!user) {
+                            return res.status(404).send('User not found');
+                        }
+                         db.all(`SELECT * FROM pastAffs WHERE user_id = ?`, [me.id], (err, paff) => {
+                           if (err) {
+                        console.error('Error fetching user:', err.message);
+                        return res.status(500).send('Failed to fetch user data');
+                        }
+                        if (!user) {
+                            return res.status(404).send('User not found');
+                        }
+                         db.all(`SELECT * FROM linkAffs WHERE user_id = ?`, [me.id], (err, laff) => {
+                           if (err) {
+                        console.error('Error fetching user:', err.message);
+                        return res.status(500).send('Failed to fetch user data');
+                        
+                        }
+                        if (!user) {
+                            return res.status(404).send('User not found');
+                        }
+                         res.render('person', { user, pdf, jobs, review, me, caff, laff, paff })
+                    })
+                    })
+                    })
+                })
+                
+              })
+        // res.render('dashboard', { username, pdf })
+            }) 
+    })
+};

@@ -222,7 +222,7 @@ body {
   background-color: #d32f2f;
 }
 
-#report-btn.subtle-report {
+.subtle-report {
   background: transparent;
   color: #c62828;
   border: 1.5px solid #c62828;
@@ -234,7 +234,7 @@ body {
   margin-left: auto;
 }
 
-#report-btn.subtle-report:hover {
+.subtle-report:hover {
   background: #c6282815;
 }
 
@@ -293,4 +293,15 @@ body {
   background-color: #fff3e0;
   box-shadow: 0 0 8px rgba(255, 152, 0, 0.4);
   transform: translateY(-2px);
+}
+
+.report-form {
+  position: absolute;
+  display: none;
+  background: white;
+  border: 1px solid #ccc;
+  padding: 10px;
+  border-radius: 6px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  z-index: 1000;
 }

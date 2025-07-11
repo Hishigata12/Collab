@@ -35,20 +35,31 @@
 <div class="main-container">
   <div class="news-box index-box">
     <h3>Latest News</h3>
-    <ul>
-      <li>Company was formed by Chet Preston and Ashley Thrower in the state of Arizona</li>
+    <ul id="news-list">
+      
+      <textarea id="news-details" class="hidden" maxlength="256"></textarea>
+      <button type="submit" id="news-btn" class="hidden">Add News</button>
   </div>
   
   <div class="media-box index-box">
-    <div class="video-box">
+    <div class="video-box" id="video-div">
       <h3>Featured Video</h3>
-      <p>Here is a video of a guy singing a classic song</p>
-      <iframe id='featured-video' src="https://www.youtube.com/embed/dQw4w9WgXcQ" allowfullscreen></iframe>
+      <p><%= features[0].details %></p>
+      <iframe id='featured-video' height='315' width='auto' src="https://www.youtube.com/embed/<%= features[0].link %>" allowfullscreen>
+
+      </iframe>
+        <input type="text" id="featured-video-url" class="hidden">
+        <textarea id="video-details" class="hidden" maxlength="256"></textarea>
+        <button type="submit" id="featured-video-btn" class="hidden">Change Video</button>
     </div>
-    <div class="image-box">
+    <div class="image-box" id="image-div">
       <h3>Latest Image</h3>
-      <p>Yes, all wood ducks can fly and play rocket guitars</p>
-      <img id='featured-image' src="/images/launch2.jpg" max-width="400px" alt="Latest Image">
+      <p><%= features[1].details %></p>
+      <img id='featured-image' src="/images/featured.jpg" max-width="400px" alt="Latest Image">
+      <input type="file" accept='jpg, image/jpeg' id="featured-image-url" class="hidden">
+      <textarea id="image-details" class="hidden" maxlength="256"></textarea>
+      <button type="submit" id="featured-image-btn" class="hidden">Change Image</button>
+
     </div>
   </div>
   <div class="search-container index-box">
@@ -60,11 +71,18 @@
 </div>
 <%- include('message') -%>
 <script>
-  const data = <%- JSON.stringify(items) %> </script> 
+  const data = <%- JSON.stringify(items) %> 
+  </script> 
+  <script>
+      const admins = <%- JSON.stringify(admins) %>
+      const username = <%- JSON.stringify(username) %>
+      const news = <%- JSON.stringify(news) %>
+  </script>
+  
 <script src="/js/main.js"></script>
 
-<!-- <script src="/node_modules/socket.io/client-dist/socket.io.min.js"></script> -->
- <!-- <script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script> -->
+<script src="/node_modules/socket.io/client-dist/socket.io.min.js"></script>
+<script src="https://cdn.socket.io/4.8.1/socket.io.min.js"></script>
 <!-- <script>
   const socket = io()
 </script> -->

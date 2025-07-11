@@ -20,7 +20,16 @@ BASE_URL = process.env.BASE_URL
 //guest user page
 exports.guest =(req, res) => {
     const username = req.session.user ? req.session.user.username : 'Guest';
-    res.render('index', { username, items: [] })
+    admins = process.env.ADMINS
+    db.all(`SELECT * FROM features`, [],  (err, features) => {
+        if (err) return res.send('fucked up bro')
+            db.all(`SELECT * FROM news ORDER BY time DESC LIMIT 10`, (err, news) => {
+        if (err) return res.send('no news bro')
+            res.render('index', { username, items: [], admins, features, news })
+        })
+        
+    })
+    
 };
 
 //new user
@@ -213,6 +222,7 @@ exports.dashboard = async (req, res) => {
     const user = req.session.user
     console.log(req.session.user)
     // console.log(username)
+    db.serialize(() => {
      db.all(`
         SELECT * FROM pdfs WHERE uploaded_by = ?`, [user.username], (err, pdf) => {
             if (err || !pdf) {
@@ -223,7 +233,7 @@ exports.dashboard = async (req, res) => {
                     uploaded_at: '',
                     uploaded_by: ''
                 }]
-                res.send('no PDF found')
+                return res.send('no PDF found')
             }
             // console.log(pdf)
              db.all(`
@@ -256,12 +266,52 @@ exports.dashboard = async (req, res) => {
                     type: 1,
                   }]
                 }
-                console.log(review)
-                res.render('dashboard', { user, pdf, jobs, review })
+                db.get(`SELECT * FROM users WHERE username = ?`, [user.username], (err, me) => {
+                    if (err) {
+                        console.error('Error fetching user:', err.message);
+                        return res.status(500).send('Failed to fetch user data');
+                    }
+                    if (!user) {
+                        return res.status(404).send('User not found');
+                    }
+                    // console.log(user)
+                    db.all(`SELECT * FROM currentAffs WHERE user_id = ?`, [user.id], (err, caff) => {
+                           if (err) {
+                        console.error('Error fetching user:', err.message);
+                        return res.status(500).send('Failed to fetch user data');
+                        }
+                        if (!user) {
+                            return res.status(404).send('User not found');
+                        }
+                         db.all(`SELECT * FROM pastAffs WHERE user_id = ?`, [user.id], (err, paff) => {
+                           if (err) {
+                        console.error('Error fetching user:', err.message);
+                        return res.status(500).send('Failed to fetch user data');
+                        }
+                        if (!user) {
+                            return res.status(404).send('User not found');
+                        }
+                         db.all(`SELECT * FROM linkAffs WHERE user_id = ?`, [user.id], (err, laff) => {
+                           if (err) {
+                        console.error('Error fetching user:', err.message);
+                        return res.status(500).send('Failed to fetch user data');
+                        
+                        }
+                        if (!user) {
+                            return res.status(404).send('User not found');
+                        }
+                         res.render('dashboard', { user, pdf, jobs, review, me, caff, laff, paff })
+                    })
+                    })
+                    })
+                   
+                })
+                
               })
         // res.render('dashboard', { username, pdf })
             })
     })
+})
 };
 
 //user logout
@@ -271,3 +321,117 @@ exports.logoutErr = (req, res) => {
         res.redirect('/')
     })
 };
+
+exports.makeReport = (req, res) => {
+    const user = req.session.user
+    if (!user) {
+        return res.status(401).send('You must be logged in to report a user');
+    }
+    console.log(req.body)
+    const { data, pdf } = req.body
+    console.log(data.reason)
+    db.run(`INSERT INTO reports (reported_by, reported, reason) VALUES (?, ?, ?)`,
+        [user.username, pdf.id, data.reason], function (err) {
+            if (err) {
+                console.error('Error inserting report: ', err.message);
+                return res.status(500).send('Failed to send report')
+            }
+            res.json({ success: true, message: 'Report sent successfully' });
+        })
+}
+
+exports.resolveReport = (req, res) => {
+    const id = req.params.id
+    const user = req.session.user
+    const admins = process.env.ADMINS
+    const { resolved } = req.body
+    if (!user || !admins.includes(user.username)) {
+        return res.status(403).send('You do not have permission to resolve reports')
+    }
+    let num = 0
+    if (!resolved) num = 1
+    db.run(`UPDATE reports SET resolved = ${num} WHERE id = ?`, [id], function (err) {
+        if (err) {
+            console.error('Error resolving report: ', err.message);
+            return res.status(500).send('Failed to resolve report')
+        }
+        res.json({ success: true, message: 'Report resolved successfully' });
+    })
+}
+
+exports.editProfile = (req, res) => {
+    const user = req.session.user
+    console.log(req.body)
+    const { name, surname, email } = req.body
+    let fields = []
+    let values = []
+    if (name) {
+    fields.push('first_name = ?')
+    values.push(name)
+    }
+    if (surname) {
+    fields.push('last_name = ?')
+    values.push(surname)
+    }
+    if (email) {
+    fields.push('email = ?')
+    values.push(email)
+    }
+    // console.log(user)
+    // console.log(fields)
+    // console.log(values)
+    values.push(user.username)
+    if (fields.length > 0) {
+    const sql = `UPDATE users SET ${fields.join(', ')} WHERE username = ?`;
+    db.run(sql, values, function (err) {
+        if (err) {
+        console.error("Update failed:", err.message);
+        return res.status(500).json({ success: false });
+        }
+        res.json({ success: true });
+    });
+    } else {
+    res.json({ success: false, message: "No fields provided" });
+    } 
+}
+
+exports.viewAllUsers = (req, res) => {
+    const table = req.params.db
+    db.all(`SELECT * FROM ${table}`, (err, row) => {
+        console.log(row)
+    })
+}
+
+exports.addAff = (req, res) => {
+    const user = req.session.user.id
+    console.log(req.body)
+    const { current, past, link } = req.body
+    if (current) {
+        db.run(`INSERT INTO currentAffs (aff, user_id) VALUES (?, ?)`, [current, user], (err) => {
+            if (!err) console.log('Inserted current affiliations ' + current)
+        })
+    }
+    if (past) {
+    db.run(`INSERT INTO pastAffs (aff, user_id) VALUES (?, ?)`, [past, user], (err) => {
+            if (!err) console.log('Inserted past affiliations ' + past)
+        })
+    }
+    if (link) {
+     db.run(`INSERT INTO linkAffs (link, user_id) VALUES (?, ?)`, [link, user], (err) => {
+            if (!err) console.log('Inserted links ' + link)
+        })
+    }
+    res.json({ success: true })
+    
+}
+
+function createSql(body, user) {
+     let fields = []
+    let values = []
+    body.forEach(b => {
+        if (b) {
+            fields.push()
+        }
+
+})
+}
