@@ -244,4 +244,31 @@ const dbPdf = new sqlite3.Database('./db.sqlite')
 //      else console.log('link affs added')
 //   })
 
+// db.run(`CREATE TABLE IF NOT EXISTS replication (
+//   id INTEGER PRIMARY KEY,
+//   pdf_id INTEGER NOT NULL,
+//   value INTEGER NOT NULL,
+//   summary TEXT CHECK (length(summary) < 512),
+//   FOREIGN KEY (pdf_id) REFERENCES pdfs(id))`,(err) => {
+//      if (err) console.error("Error adding Table:", err.message)
+//       else console.log('replication added')
+//     })
+
+// db.run('DROP TABLE IF EXISTS reproducibility', (err) => {
+//   if (err) console.error('Failed to delete table', err.message)
+//   else console.log('Table Deleted')
+// })
+
+// db.run(`CREATE TABLE IF NOT EXISTS reproducibility (
+//   pdf_id INTEGER NOT NULL,
+//   cost INTEGER NOT NULL DEFAULT 1,
+//   time INTEGER NOT NULL DEFAULT 1,
+//   expert INTEGER NOT NULL DEFAULT 1,
+//   approval INTEGER NOT NULL DEFAULT 1,
+//   available INTEGER NOT NULL DEFAULT 1,
+//   FOREIGN KEY (pdf_id) REFERENCES pdfs(id))`, (err) => {
+//     if (err) console.error("ERROR ADDING TABLE", err.message)
+//       else console.log('reproduciblity added successfully')
+//   })
+
 module.exports = { db, dbPdf }

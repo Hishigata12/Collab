@@ -22,6 +22,8 @@
             <% }) %>
             <button id="applaud-btn" data-id="<%= pdf.id %>" 
             class="bounce-applaud">👏 Claps <span class="count"><%= pdf.claps %></span></button>
+            <strong><span id="replication-score"><%= rep_score.score %> </span> || 
+            <span id="reproduce-score"> <%= r_score.score %></span></strong>
             <button id="report-btn" class="subtle-report">🚨 Report</button>
             </ul>
         </p>
@@ -32,6 +34,7 @@
         <span id="follow-count" class="follow-count">👤 <%= user.subs %></span>
           <!-- <span id="follow-text"><%= pdf.is_followed ? 'Unfollow' : 'Follow' %></span> -->
       </div>
+      <div>Article ID: <%= pdf.id %></div>
       <div id="pdf-description">
         <p><%= pdf.description %></p>
       </div>

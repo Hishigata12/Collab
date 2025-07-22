@@ -15,7 +15,14 @@
         <h1>Dashboard for <%= user.username %></h1>
         <h3>Followers: <%= me.subs %></h3>
     </div>
-    
+    <!-- Modal structure -->
+     <button onclick="timer(true)"></button>
+    <div id="modal" class="modal">
+    <div class="modal-content">
+        <div class="upload-animation" id="uploadMessage">PDF uploaded successfully!</div>
+        <h2 id="upload-timer"></h2>
+    </div>
+    </div>
     <div class="container">
         <div class="half">
             <div id="form-div">
@@ -36,8 +43,27 @@
                         <option value="4">Study Replication</option>
                     </select>
                     <input type="text" name="tags" placeholder="Comma-separated tags, 8 max"><br>
+                    <div id="replication" class="hidden">
+                    <h3>What is the original study ID of this replcation?</h3>
+                    <input type="number" min="1" id="original-id" name="original_id" placeholder="ID Number"/>
+                    <select name="replication">
+                        <option value="0">SUCCESSFUL</option>
+                        <option value="1">PARTIAL SUCCESS</option>
+                        <option value="2">UNSUCCESSFUL</option>
+                    </select>
+                    <textarea name="reason" placeholder="Summary"
+                        rows="5" maxlength="512" placeholder="Study Description"></textarea>
+                    </div>
+                    <div id="original-div">
+                        <h3>Reproducibility Score (Rate each category from 1-10) More info at:</h3>
+                        <input type="number" min="1" max="10" name="cost" placeholder="financial cost">
+                        <input type="number" min="1" max="10" name="time" placeholder="study duration">
+                        <input type="number" min="1" max="10" name="approval" placeholder="beaurocracy">
+                        <input type="number" min="1" max="10" name="expert" placeholder="technical expertise">
+                        <input type="number" min="1" max="10"name="availability" placeholder="component availability">
+                    </div>
                     <button type="submit">Publish</button>
-                    <div class="upload-animation" id="uploadMessage">PDF uploaded successfully!</div>
+                    
                 </form>
                 <form id="jobForm" class="upload-form hidden" enctype="multipart/form-data">
                     <h2>Create Job Listing</h2>
@@ -49,14 +75,23 @@
                     <input type="file" name="pdf" accept="application/pdf">
                     
                     <button type="submit">Submit Job Listing</button>
-                    <div class="upload-animation" id="uploadMessage2">Job listed successfully!</div>
+                   
                 </form>
                 <form id="edit-pdf-form" class="upload-form hidden" enctype="multipart/form-data">
+                    <h3 id="edit-title"></h3>
                     <textarea name="description" id="study-desc" rows="5"
                           maxlength="512" placeholder="Study Description"></textarea>
                     <input type="file" name="pdf" accept="application/pdf"/>
                     <button type="submit">Publish Edits</button>
-                    <div class="upload-animation" id="uploadMessage">Edits processed successfully!</div>
+                    <!-- <div class="upload-animation" id="uploadMessage">Edits processed successfully!</div> -->
+                </form>
+                 <form id="edit-feedback-form" class="upload-form hidden" enctype="multipart/form-data">
+                    <h3 id="edit-title-f"></h3>
+                    <textarea name="description" id="study-desc-f" rows="5"
+                          maxlength="512" placeholder="Study Description"></textarea>
+                    <input type="file" name="pdf" accept="application/pdf"/>
+                    <button type="submit">Publish Edits</button>
+                    <!-- <div class="upload-animation" id="uploadMessage">Edits processed successfully!</div> -->
                 </form>
                 <form id="review-form" class="upload-form hidden" enctype="multipart/form-data">
                     <input type="text" name="title" placeholder="Enter title for prepublish review" required />
@@ -71,7 +106,7 @@
                         <option value="3">Other</option>
                     </select><br>
                     <button type="submit">Post for feedback</button>
-                    <div class="upload-animation" id="uploadMessage3">PDF uploaded successfully!</div>
+                 
                 </form>
                 <form id="about-me" class="upload-form hidden" enctype="multipart/form-data">
                     <h2>About Me</h2>
@@ -82,7 +117,7 @@
                           maxlength="512" placeholder="Write about yourself"></textarea>
                     <div id="char-count">512 characters remaining</div>
                     <button type="submit">Update Profile</button>
-                    <div class="upload-animation" id="uploadMessage4">Profile updated successfully!</div>
+                    
                 </form>
                 <form id="affiliations" class="upload-form hidden" enctype="multipart/form-data">
                     <h3>Add new affiliation</h3>
@@ -100,13 +135,7 @@
             </ul>
             <h2>Manuscripts/Experimental Plans for Review</h2>
             <ul class="upload-list" id="prepublish-list">
-                      <% review.forEach(p => { %>
-                    <li>
-                        <a href="/feedback/<%= p.slug %>"><%= p.title %></a>
-                        <!-- <button class="edit-btn-pdf" data-id="<%= p.id %>">&#9881; </button> -->
-                        <button class="delete-btn-feedback" data-id="<%= p.id %>">🗑️ </button>
-                    </li>
-                <% }) %>
+     
             </ul>
             <h2>Job Listings</h2>
             <ul class="upload-list" id="job-postings">
@@ -114,7 +143,6 @@
             </ul>
         </div>
         <div class="half">
-                <h2>right panel</h2>
                 <div id="pdf-preview" style="display:none; width:75%; height:auto; border:1px solid gray;">
                     <canvas id="pdf-canvas" style="width:100%;"></canvas>
                 </div>

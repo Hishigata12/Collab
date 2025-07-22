@@ -9,6 +9,10 @@ let reviewForm = document.getElementById("review-form")
 const editPdf = document.getElementById("edit-pdf-form")
 const jobList = document.getElementById('job-postings');
 let profileForm = document.getElementById('about-me')
+const editFeedback = document.getElementById('edit-feedback-form')
+const studyType = document.getElementById('study-type')
+const modal = document.getElementById('modal');
+const uploadTimer = document.getElementById('upload-timer')
 
 let editPdfID = []
 
@@ -18,6 +22,9 @@ function showArticles() {
   pdfs.forEach(pdf => {
     const li = document.createElement("li");
     const link = document.createElement("a");
+    const p = document.createElement('p')
+    p.style.display = 'inline'
+    p.textContent = ' - '
     link.href = `/pdf/${pdf.slug}`;
     link.textContent = pdf.title;
     link.dataset.fname = '/pdfs/' + pdf.filename;
@@ -35,10 +42,13 @@ function showArticles() {
     //add edit button
     const editBtn = document.createElement("button");
     editBtn.classList.add("edit-btn-pdf")
+    editBtn.classList.add('transparent')
     editBtn.textContent = '⚙️'
     editBtn.dataset.id = pdf.id;
+    editBtn.dataset.name = pdf.title
 
     li.appendChild(link);
+    li.appendChild(p)
     li.appendChild(editBtn);
     li.appendChild(deleteBtn);
     pdfList.appendChild(li);
@@ -51,6 +61,9 @@ function showJobs() {
   jobs.forEach(job => {
     const li = document.createElement("li");
     const link = document.createElement("a");
+    const p = document.createElement('p')
+    p.style.display = 'inline'
+    p.textContent = ' - '
     link.href = `/jobs/${job.id}`;
     link.textContent = job.title;
     link.classList.add('view-job');
@@ -66,13 +79,54 @@ function showJobs() {
     deleteBtn.dataset.id = job.id;
 
     li.appendChild(link);
+    li.appendChild(p)
     li.appendChild(deleteBtn);
     jobList.appendChild(li);
   })
 }
 
+function showFeedback() {
+  const feedbackList = document.getElementById('prepublish-list')
+  feedbackList.innerHTML = '';
+  reviews.forEach(r => {
+    const li = document.createElement("li");
+    const link = document.createElement("a");
+    const p = document.createElement('p')
+    p.style.display = 'inline'
+    p.textContent = ' - '
+    link.href = `/feedback/${r.slug}`;
+    link.textContent = r.title;
+    link.classList.add('pdf-link')
+    link.dataset.id = r.id;
+    link.dataset.fname = '/pdfs/' + r.filename;
+
+    // Add delete button
+    const deleteBtn = document.createElement("button");
+    deleteBtn.textContent = "🗑️";
+    deleteBtn.classList.add("delete-btn-jobs");
+    deleteBtn.classList.add('transparent')
+    deleteBtn.dataset.id = r.id;
+
+       //add edit button
+    const editBtn = document.createElement("button");
+    editBtn.classList.add("edit-btn-feedback")
+    editBtn.classList.add('transparent')
+    editBtn.textContent = '⚙️'
+    editBtn.dataset.id = r.id;
+    editBtn.dataset.name = r.title
+
+    li.appendChild(link);
+    li.appendChild(p)
+    li.appendChild(editBtn);
+    li.appendChild(deleteBtn);
+    feedbackList.appendChild(li);
+  })
+}
+
+
 showArticles()
 showJobs()
+showFeedback()
 
 
 articleForm.addEventListener("submit", async (e) => {
@@ -89,9 +143,7 @@ articleForm.addEventListener("submit", async (e) => {
     const result = await res.json();
     // console.log(result)
     if (result.success && result.slug && result.title) {
-      // Show animation message
-      uploadMessage.textContent = "PDF uploaded successfully!";
-      uploadMessage.style.display = "block";
+  
 
       // Optionally, reset the form
       articleForm.reset();
@@ -105,17 +157,13 @@ articleForm.addEventListener("submit", async (e) => {
       pdfList.prepend(newItem); // Add to top of list
 
       // Hide message after 3 seconds
-      setTimeout(() => {
-        uploadMessage.style.display = "none";
-      }, 3000);
+      timer(true)
     } else {
-      uploadMessage.textContent = "Upload failed. Try again.";
-      uploadMessage.style.display = "block";
+     timer(false)
     }
   } catch (err) {
     console.error("Upload error:", err);
-    uploadMessage.textContent = "An error occurred.";
-    uploadMessage.style.display = "block";
+   timer(false)
   }
 });
 
@@ -130,21 +178,15 @@ reviewForm.addEventListener('submit', async (e) => {
     const result = await res.json();
     console.log(result)
     if (result.success && result.slug && result.title && result.id) {
-      uploadMessage3.textContent = `New study posted successfully id: ${result.id}`
-      uploadMessage3.style.display = 'block'
+  
       reviewForm.reset()
-      setTimeout(() => {
-        uploadMessage3.style.display = 'none'
-        fetch('/dashboard')
-      }, 5000)
+      timer(true)
     } else {
-       uploadMessage.textContent = "Upload failed. Try again.";
-       uploadMessage.style.display = "block";
+     timer(false)
     }
   } catch (err) {
     console.error("Error uploading file", err)
-    uploadMessage.textContent = "Upload failed. Try again.";
-    uploadMessage.style.display = "block";
+   timer(false)
   }
 })
 
@@ -162,8 +204,7 @@ jobForm.addEventListener("submit", async (e) => {
     })
     const result = await res.json();
     // console.log(result)
-    uploadMessage2.textContent = "Job Listed successfully!"
-    uploadMessage2.style.display = "block";
+    timer(true)
 
     jobForm.reset()
 
@@ -176,13 +217,10 @@ jobForm.addEventListener("submit", async (e) => {
     pdfList.prepend(newItem); // Add to top of list
 
     // Hide message after 3 seconds
-    setTimeout(() => {
-      uploadMessage2.style.display = "none";
-    }, 3000);
+
   } catch (err) {
     console.error("Upload error:", err)
-    uploadMessage2.textContent = "An error occurred.";
-    uploadMessage2.style.display = "block";
+   timer(false)
   } finally {
     submitButton.disabled = false;
   }
@@ -209,14 +247,9 @@ profileForm.addEventListener('submit', async (e) => {
     });
     const result = await res.json();
     if (result.success) {
-      uploadMessage4.textContent = "Profile updated successfully!";
-      uploadMessage4.style.display = "block";
-      setTimeout(() => {
-        uploadMessage4.style.display = "none";
-      }, 3000);
+     timer(true)
     } else {
-      uploadMessage4.textContent = "Failed to update profile.";
-      uploadMessage4.style.display = "block";
+     timer(false)
     } 
   } catch (err) {
     console.error("Profile update error:", err);
@@ -235,31 +268,43 @@ editPdf.addEventListener("submit", async (e) => {
       body: formData,
     })
     const result = await res.json();
-    uploadMessage3.textContent = "Study modified successfully!"
-    uploadMessage3.style.display = "block";
+    editPdf.reset()
+    if (result.success) {
+      timer(true)
+    } else {
+      timer(false)
+    }
+    // uploadMessage3.textContent = "Study modified successfully!"
+    // uploadMessage3.style.display = "block";
 
 
-    setTimeout(() => {
-      uploadMessage3.style.display = "none";
-    }, 3000);
+    // setTimeout(() => {
+    //   uploadMessage3.style.display = "none";
+    // }, 3000);
+    // modal.style.display = 'block'
+    // document.body.style.overflow = 'hidden'
+    // setTimeout(() => {
+    //   modal.style.display = 'none'
+    //   document.body.style.overflow = 'auto'
+    // })
   } catch (err) {
-  editPdf.reset()
    console.error("Upload error:", err)
-    uploadMessage2.textContent = "An error occurred.";
-    uploadMessage2.style.display = "block";
+   timer(false)
   }
 })
+
+
 
 function addDeleteButtons(type) {
   document.querySelectorAll(`.delete-btn-${type}`).forEach(button => {
   button.classList.add('transparent')
   button.addEventListener('click', async (e) => {
   const pdfId = button.dataset.id;
-  console.log(pdfId)
+  // console.log(pdfId)
   if (!confirm('Are you sure you want to delete this PDF?')) return;
 
   try {
-    console.log(`/${type}/delete/${pdfId}`,)
+    // console.log(`/${type}/delete/${pdfId}`,)
     const res = await fetch(`/${type}/delete/${pdfId}`, {
       method: 'DELETE',
     });
@@ -277,7 +322,17 @@ function addDeleteButtons(type) {
       alert('An error occurred while trying to delete.');
     }
   });
+  makeTrans(button)
 });
+}
+
+function makeTrans(button) {
+    button.addEventListener('mouseenter', async (e) => {
+    button.classList.remove('transparent')
+  })
+  button.addEventListener('mouseleave', async (e) => {
+    button.classList.add('transparent')
+  })
 }
 
 addDeleteButtons('pdf')
@@ -338,19 +393,59 @@ addDeleteButtons('feedback')
 //     }
 //   });
 // });
+let editPdfCheck = 0;
 
 document.querySelectorAll('.edit-btn-pdf').forEach(button => {
   button.addEventListener('click', async (e) => {
 
   editPdfID = button.dataset.id;
-  console.log(editPdfID)
-
+  // console.log(editPdfID)
+  // console.log(editPdfCheck)
+  const head = document.getElementById('edit-title')
+  head.textContent = `Currently editting: ${button.dataset.name}`
+  if (editPdfCheck == editPdfID) {
+    editPdf.classList.add('hidden')
+    editPdfCheck = 0;
+  } else {
+    editPdf.classList.remove('hidden')
+    editPdfCheck = editPdfID
+  }
+ 
   const formDiv = document.getElementById('form-div')
   if (!articleForm.classList.contains('hidden')) articleForm.classList.toggle('hidden')
   if (!jobForm.classList.contains('hidden')) jobForm.classList.toggle('hidden')
-  if (editPdf.classList.contains('hidden')) editPdf.classList.toggle('hidden')
-
+  if (!reviewForm.classList.contains('hidden')) reviewForm.classList.toggle('hidden')
+  // if (editPdf.classList.contains('hidden')) editPdf.classList.toggle('hidden')
+  if (!editFeedback.classList.contains('hidden')) editFeedback.classList.toggle('hidden')
   });
+ makeTrans(button)
+});
+
+let editFeedbackCheck = 0;
+
+document.querySelectorAll('.edit-btn-feedback').forEach(button => {
+  button.addEventListener('click', async (e) => {
+
+  editPdfID = button.dataset.id;
+
+  const head = document.getElementById('edit-title-f')
+  head.textContent = `Currently editting: ${button.dataset.name}`
+  if (editFeedbackCheck == editPdfID) {
+    editFeedback.classList.add('hidden')
+    editPdfCheck = 0;
+  } else {
+    editFeedback.classList.remove('hidden')
+    editPdfCheck = editPdfID
+  }
+  
+  const formDiv = document.getElementById('form-div')
+  if (!articleForm.classList.contains('hidden')) articleForm.classList.toggle('hidden')
+  if (!jobForm.classList.contains('hidden')) jobForm.classList.toggle('hidden')
+  if (!reviewForm.classList.contains('hidden')) reviewForm.classList.toggle('hidden')
+  // if (editPdf.classList.contains('hidden')) editPdf.classList.toggle('hidden')
+  if (!editPdf.classList.contains('hidden')) editPdf.classList.toggle('hidden')
+  });
+makeTrans(button)
 });
 
 const textarea = document.getElementById("study-desc");
@@ -376,7 +471,7 @@ const links = document.querySelectorAll('.pdf-link')
 links.forEach(link => {
     link.addEventListener('mouseenter', () => {
         const url = link.dataset.fname;
-        console.log(url);
+        // console.log(url);
 
         preview.style.display = 'block';
         // showInfo.style.display = 'block';
@@ -444,15 +539,12 @@ affForm.addEventListener('submit', async (e) => {
     const result = await res.json();
     // console.log(result)
     if (result.success) {
-      setTimeout(() => {
-        window.location.href = '/dashboard';
-      }, 3000);
+      timer(true)
     }
 
   } catch (err) {
     console.error("Upload error:", err);
-    uploadMessage.textContent = "An error occurred.";
-    uploadMessage.style.display = "block";
+    timer(false)
   }
 })
 
@@ -460,7 +552,7 @@ function showAffiliations() {
   const currentDiv = document.getElementById('current-div')
   const pastDiv = document.getElementById('past-div')
   const linkDiv = document.getElementById('link-div')
-  console.log(linkDiv)
+  // console.log(linkDiv)
   laff.forEach(l => {
     const a = document.createElement('a')
     a.href = l.link
@@ -479,7 +571,22 @@ function showAffiliations() {
   })
 }
 
-  showAffiliations()
+showAffiliations()
+
+studyType.addEventListener('change', function() {
+  const replicationDiv = document.getElementById('replication')
+  const originalDiv = document.getElementById('original-div')
+  if (this.value == 4) {
+    replicationDiv.classList.remove('hidden')
+  } else {
+    replicationDiv.classList.add('hidden')
+  }
+  if (this.value == 1) {
+    originalDiv.classList.remove('hidden')
+  } else {
+    originalDiv.classList.add('hidden')
+  }
+})
 
 })
 
@@ -526,4 +633,33 @@ function toggleForm(formId) {
         profileForm.classList.add('hidden')
         reviewForm.classList.add('hidden')
     }
+}
+
+
+function timer(success) {
+  const uploadMessage = document.getElementById('uploadMessage')
+  if (success) {
+    uploadMessage.textContent = "Upload SUCCESS"
+    uploadMessage.style.color = 'green'
+  } else {
+    uploadMessage.textContent = "Upload FAILED"
+    uploadMessage.style.color = 'red'
+  }
+  const uploadTimer = document.getElementById('upload-timer')
+    let timeLeft = 5;
+
+  uploadTimer.textContent = timeLeft; // Set initial value
+  modal.style.display = 'block'
+  const timer1 = setInterval(() => {
+    timeLeft--;
+    uploadTimer.textContent = timeLeft;
+
+    if (timeLeft <= 1) {
+      clearInterval(timer1);
+      modal.style.display = 'none'
+      if (success) {
+      fetch('/dashboard')
+      }
+    }
+  }, 1000); // Update every 1 second
 }

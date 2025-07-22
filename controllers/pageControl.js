@@ -34,7 +34,7 @@ exports.displayPdf = (req, res) => {
             } else {
             db.all('SELECT * FROM pdfs WHERE slug != ? LIMIT 10', [slug], (err2, related) => {
         // console.log(related)
-        console.log(pdf.id)
+        // console.log(pdf.id)
           db.all(`
               SELECT tags.name FROM tags JOIN pdf_tags ON tags.id = pdf_tags.tag_id
               WHERE pdf_tags.pdf_id = ?`, [pdf.id], (err, rows) => {
@@ -42,9 +42,38 @@ exports.displayPdf = (req, res) => {
                   const tagNames = rows.map(row => row.name) 
               // console.log(tagNames)
               db.get(`SELECT * FROM users WHERE username = ?`, [pdf.uploaded_by], (err, user) => {
-                  res.render('projects', { pdf, related, comments, tagNames, user });
+                db.all(`SELECT * FROM replication WHERE pdf_id = ?`, [pdf.id], (err, replication) => {
+                  if (err) return console.error('Error getting replication:', err.message)
+                  db.get(`SELECT * FROM reproducibility WHERE pdf_id = ?`, [pdf.id], (err, reproduce) => {
+                r_score = []
+                if (!reproduce) {
+                  r_score = {score: 'N/A' }
+                } else {
+                  // console.log(reproduce)
+                  const r_values = Object.values(reproduce).slice(1, 6)
+                  const ave_reproduce = r_values.reduce((sum, num) => sum + num, 0) / r_values.length 
+                  r_score = {score: ave_reproduce}
+                }
+                rep_score = []
+                      // console.log('replication = ' + replication)
+                if (!replication) {
+                  rep_score = {score: 'Rep Study'}
+                } else {
+                  score = []
+                  replication.forEach(rep => {
+                    score.push(rep.value)
+                  })
+                  const ave_rep = score.reduce((sum, num) => sum + num, 0) / score.length / 2
+                  // console.log(ave_rep)
+                  rep_score = {score: ave_rep}
+                }
+                // console.log(rep_score)
+                if (err) return console.error('Error getting reproduction:', err.message)
+                res.render('projects', { pdf, related, comments, tagNames, user, rep_score, r_score });
+                  })
+                })
+                  
               })
-              
               })        
       })
     }

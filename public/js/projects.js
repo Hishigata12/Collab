@@ -132,3 +132,38 @@ document.getElementById('reportForm').addEventListener('submit', async (e) => {
   }
 });
 
+
+
+
+// document.addEventListener("DOMContentLoaded", () => {
+
+const rScore = document.getElementById('reproduce-score')
+const repScore = document.getElementById('replication-score')
+
+function repColor(span, small) {
+  if (span.textContent === 'N/A') {
+    
+  } else {
+    let rValue = parseFloat(span.textContent);
+      if (small ) rValue = rValue*10
+      console.log(rValue)
+    // Clamp value between 1 and 10
+    let clampedValue = Math.max(1, rValue);
+  
+
+    // Map 1 -> green (#00ff00), 10 -> red (#ff0000)
+    const ratio = (clampedValue - 1) / (9); 
+    const r = Math.round(0 + (255 - 0) * ratio);  // red increases
+    const g = Math.round(255 - (255 * ratio));    // green decreases
+    const b = Math.round(255 - (255 * Math.abs(0.5-ratio)))                                  // no blue
+    console.log('green' + g)
+    console.log('red' + r)
+    console.log('blue' +b)
+  span.style.color = `rgb(${r}, ${g}, ${b})`;
+  }
+}
+repColor(rScore, false)
+repColor(repScore, true)
+
+
+// })

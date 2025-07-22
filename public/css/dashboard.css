@@ -69,7 +69,7 @@ body {
 }
 
 .upload-animation {
-  display: none;
+  display: block;
   margin-top: 10px;
   font-size: 14px;
   color: #004080;
@@ -176,4 +176,28 @@ body {
   margin-top: 0.5rem;
   margin-bottom: 0.5rem;
   font-size: 15px;
+}
+
+/* Modal background overlay */
+.modal {
+  display: none; /* Hidden by default */
+  position: fixed;
+  z-index: 1000; /* On top of other elements */
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5); /* semi-transparent */
+  backdrop-filter: blur(3px); /* optional: blurred background */
+}
+
+/* Modal content box */
+.modal-content {
+  background: white;
+  margin: 10% auto;
+  padding: 20px;
+  width: 300px;
+  border-radius: 8px;
+  text-align: center;
+  position: relative;
 }

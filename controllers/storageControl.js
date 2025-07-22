@@ -42,10 +42,11 @@ if (!req.file) {
         return res.status(400).send('No file uploaded. Check multer.')
     }
   const { title, tags, authors, description, unis, type } = req.body;
-  console.log(type)
+
+//   console.log(type)
   tagList = tags.split(',').map(tag => tag.trim().toLowerCase()).filter(tag => tag.length > 0)
   authorList = authors.split(',').map(author => author.trim().toLowerCase()).filter(author => author.length > 0)
-  console.log(authorList)
+//   console.log(authorList)
   uniList = unis.split(',').map(uni => uni.trim().toLowerCase()).filter(uni => uni.length > 0)
 //   console.log(tagList)
   const slug = slugify(title, { lower: true, strict: true });
@@ -83,7 +84,26 @@ if (!req.file) {
             }
         )
       })
-      res.json({ success: true, title: title, slug: slug, id: pdfId });;
+        if (type == 4) {
+            const { reason, replication, original_id } = req.body
+            db.run(`INSERT INTO replication (pdf_id, value, summary) VALUES (?, ?, ?)`, [original_id, replication, reason], (err) => {
+                if (err) return console.error('replication failed', err.message)
+            })
+        }
+        if (type == 1) {
+            console.log('check 1')
+            const { cost, time, expert, availability, approval } = req.body
+            db.run(`INSERT INTO reproducibility (pdf_id, cost, time, expert, approval, available)
+                VALUES (?, ?, ?, ?, ?, ?)`, [pdfId, cost, time, expert, approval, availability], (err) => {
+                    if (!err) res.json({ success: true, title: title, slug: slug, id: pdfId })
+                        else {
+                    console.error('failed to work', err.message)
+                    res.json({ success: false, title: title, slug: slug, id: pdfId })
+                        }
+                })
+        } else { 
+            res.json({ success: true, title: title, slug: slug, id: pdfId });
+        }
     });
 };
 
@@ -164,6 +184,7 @@ exports.editPdf = (req, res) => {
             })
         }
       })
+      res.json({ success: true });
 
 }
 
