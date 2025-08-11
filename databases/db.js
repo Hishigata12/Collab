@@ -15,6 +15,16 @@ const db = new sqlite3.Database('./users.db');
   //   first_name TEXT NOT NULL CHECK (length(username) < 64),
   //   last_name TEXT NOT NULL CHECK (length(username) < 64)
 //   )`);
+// db.run(`CREATE TABLE IF NOT EXISTS profiles (
+//   user_id INTEGER PRIMARY KEY,
+//   bio TEXT CHECK (length(bio) < 512),
+//   avatar TEXT CHECK (length(avatar) < 128),
+//   website TEXT CHECK (length(website) < 128),
+//   location TEXT CHECK (length(location) <64),
+//   FOREIGN KEY (user_id) REFERENCES users(id))`, (err) => {
+//       if (err) console.error("Error adding Table:", err.message)
+//       else console.log('Made reports successfully')
+//     })
 //   db.run(`CREATE TABLE IF NOT EXISTS msgs (
 //   id INTEGER PRIMARY KEY AUTOINCREMENT,
 //   sender TEXT NOT NULL,
@@ -70,7 +80,7 @@ const db = new sqlite3.Database('./users.db');
 // Database
 const dbPdf = new sqlite3.Database('./db.sqlite')
 // Create users table if it doesn't exist
-// dbPdf.serialize(() => {
+// db.serialize(() => {
   // db.run(`CREATE TABLE IF NOT EXISTS pdfs (
   //   id INTEGER PRIMARY KEY AUTOINCREMENT,
   //   title TEXT UNIQUE NOT NULL CHECK (length(title) < 128),

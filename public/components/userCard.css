@@ -1,0 +1,31 @@
+.user-card {
+  display: flex;
+  align-items: center;
+  padding: 12px;
+  border: 1px solid #ccc;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  margin-bottom: 12px;
+  max-width: 300px;
+  opacity: 1;
+  transition: opacity 0.3s ease;
+  background-color: rgba(236, 231, 180, 1); 
+}
+.user-avatar {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-right: 12px;
+}
+.user-info {
+  flex: 1;
+}
+.user-name {
+  font-size: 1.1em;
+  margin: 0;
+}
+.user-role {
+  margin: 4px 0 0;
+  color: #777;
+}

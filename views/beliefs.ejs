@@ -3,7 +3,22 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <link rel="stylesheet" href="/css/generic.css">
+       
+        <!-- <link rel="stylesheet" href="/css/generic.css"> -->
+        <title>User List</title>
+        <script type="module" src="/js/user-card.js"></script>
+          <style>
+    body {
+      font-family: sans-serif;
+      background: #f7f7f7;
+      padding: 2em;
+    }
+    .card-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1em;
+    }
+  </style>
     </head>
     <body>
         <div id="main-div">
@@ -11,7 +26,23 @@
                 
             </ul>
         </div>
+          <h1>Our Team</h1>
+  <div class="card-list" id="userList"></div>
+
+  <script>
+    import { createUserCard } from './js/userCard.js';
+    const container = document.getElementById('userList');
+    container.appendChild(createUserCard(user));
+
+    const users = [
+      { name: "Alice Johnson", role: "Designer", email: "alice@example.com" },
+      { name: "Bob Smith", role: "Developer", email: "bob@example.com" },
+      { name: "Charlie Ray", role: "Manager", email: "charlie@example.com" },
+    ];
+
+  </script>
+  
         <%- include('message') -%>
-        <script src="/js/beliefs.js"></script>
+        <!-- <script src="/js/beliefs.js"></script> -->
     </body>
 </html>

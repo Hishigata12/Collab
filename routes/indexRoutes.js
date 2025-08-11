@@ -84,6 +84,7 @@ routes.post('/resolve-report/:id', requireAuth, auth.resolveReport)
 routes.get('/user/:username', pg.userProfile);
 routes.post('/profile/edit', requireAuth, auth.editProfile)
 routes.post('/add-aff', requireAuth, upload.none(), auth.addAff)
+routes.post('/update-profile', requireAuth, upload.single('avatar'), auth.updateBadge)
 
 //database viewing
 routes.get('/show/:db', auth.viewAllUsers)
@@ -92,6 +93,9 @@ routes.get('/show/:db', auth.viewAllUsers)
 routes.post('/change-features', requireAuth, store.featuredContent)
 routes.post('/change-feature-image', requireAuth, uploadFeature.single('file'), store.featuredContent)
 routes.post('/add-news', requireAuth, store.addNews)
+
+//about
+routes.get('/about', pg.about);
 
 //End of indexRoutes.js
 module.exports = routes;

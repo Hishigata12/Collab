@@ -489,3 +489,8 @@ exports.jobsDelete = (req, res) => {
             }) 
     })
 };
+
+
+exports.about = (req, res) => {
+  res.render('user-list')
+}

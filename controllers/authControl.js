@@ -424,6 +424,32 @@ exports.addAff = (req, res) => {
     
 }
 
+exports.updateBadge = (req, res) => {
+    const user = req.session.user.id
+    console.log(user)
+    const { location, site } = req.body || { location: 'The Abyss', site: 'doodoos' }
+    console.log(req.body)
+    console.log(req.file)
+    const avatar = req.file ?  `/images/${req.file.filename}` : '/images/cow.jfif'
+      const sql = `
+    INSERT INTO profiles (user_id, website, avatar, location)
+    VALUES (?, ?, ?, ?)
+    ON CONFLICT(user_id)
+    DO UPDATE SET avatar = excluded.avatar,
+    website = excluded.website,
+    location = excluded.location
+  `;
+    db.run(sql, [user, site, avatar, location], function (err) {
+        if (err) {
+            console.error('Error updating profile:', err.message);
+            return res.status(500).json({ success: false, message: 'Failed to update profile' });
+        }
+        console.log('Profile updated successfully');
+        res.json({ success: true, message: 'Profile updated successfully', avatar, site, location });
+    })
+}
+
+
 function createSql(body, user) {
      let fields = []
     let values = []

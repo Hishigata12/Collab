@@ -13,6 +13,7 @@ const editFeedback = document.getElementById('edit-feedback-form')
 const studyType = document.getElementById('study-type')
 const modal = document.getElementById('modal');
 const uploadTimer = document.getElementById('upload-timer')
+let badgeForm = document.getElementById('update-profile')
 
 let editPdfID = []
 
@@ -256,6 +257,28 @@ profileForm.addEventListener('submit', async (e) => {
     }
   })
 
+badgeForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+    const formData = new FormData(reviewForm)
+    console.log(document.getElementById('badge-location').value)
+  try {
+    const res = await fetch('/update-profile', {
+      method: "POST",
+      body: formData,
+    })
+    const result = await res.json();
+    console.log(result)
+    if (result.success) {
+      reviewForm.reset()
+      timer(true)
+    } else {
+     timer(false)
+    }
+  } catch (err) {
+    console.error("Error uploading file", err)
+   timer(false)
+  }
+})
 
 
 editPdf.addEventListener("submit", async (e) => {
@@ -596,7 +619,9 @@ function toggleForm(formId) {
     const reviewForm = document.getElementById('review-form')
     const profileForm = document.getElementById('about-me')
     const affForm = document.getElementById('affiliations')
-
+    const badgeForm = document.getElementById('update-profile')
+ 
+// refactor this into a for loop
     if (formId === 'articleForm') {
         const shouldShow = postForm.classList.contains('hidden');
         postForm.classList.toggle('hidden', !shouldShow);
@@ -604,6 +629,7 @@ function toggleForm(formId) {
         reviewForm.classList.add('hidden')
         profileForm.classList.add('hidden')
         affForm.classList.add('hidden')
+         badgeForm.classList.add('hidden')
     } else if (formId === 'jobForm') {
         const shouldShow = jobForm.classList.contains('hidden');
         jobForm.classList.toggle('hidden', !shouldShow);
@@ -611,6 +637,7 @@ function toggleForm(formId) {
         reviewForm.classList.add('hidden')
         profileForm.classList.add('hidden')
         affForm.classList.add('hidden')
+         badgeForm.classList.add('hidden')
     } else if (formId === 'reviewForm') { 
         const shouldShow = reviewForm.classList.contains('hidden')
         reviewForm.classList.toggle('hidden', !shouldShow)
@@ -618,6 +645,7 @@ function toggleForm(formId) {
         jobForm.classList.add('hidden');
         profileForm.classList.add('hidden')
         affForm.classList.add('hidden')
+         badgeForm.classList.add('hidden')
     } else if (formId === 'profileForm') {
       const shouldShow = profileForm.classList.contains('hidden')
       profileForm.classList.toggle('hidden', !shouldShow)
@@ -625,6 +653,7 @@ function toggleForm(formId) {
       jobForm.classList.add('hidden');
       reviewForm.classList.add('hidden')
       affForm.classList.add('hidden')
+       badgeForm.classList.add('hidden')
     } else if (formId === 'affForm') {
         const shouldShow = affForm.classList.contains('hidden')
         affForm.classList.toggle('hidden', !shouldShow)
@@ -632,7 +661,16 @@ function toggleForm(formId) {
         jobForm.classList.add('hidden');
         profileForm.classList.add('hidden')
         reviewForm.classList.add('hidden')
-    }
+        badgeForm.classList.add('hidden')
+    }   else if (formId === 'badgeForm') {
+        const shouldShow = badgeForm.classList.contains('hidden');
+        badgeForm.classList.toggle('hidden', !shouldShow);
+        postForm.classList.add('hidden');
+        jobForm.classList.add('hidden');
+        reviewForm.classList.add('hidden')
+        profileForm.classList.add('hidden')
+        affForm.classList.add('hidden')
+    } 
 }
 
 

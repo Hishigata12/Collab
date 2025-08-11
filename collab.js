@@ -291,6 +291,54 @@ app.get('/ashley', (req, res) => {
   res.json({ userId: 1, id: 1, title: "anything", body:"mmmm girl" })
 })
 
+app.get('/api/users', (req, res) => {
+  const users = [
+    { name: 'Alice', role: 'Designer', avatar: '/images/alice.png' },
+    { name: 'Bob', role: 'Engineer', avatar: '/images/bob.jpg' },
+  ];
+  res.json(users);
+});
+
+app.get('/api/users/:id', (req, res) => {
+  const users = [
+    { name: 'Hishigata', role: 'Designer', avatar: '/images/cow.jfif' },
+    { name: 'Bob', role: 'Engineer', avatar: '/images/bob.jpg' },
+];
+  const name = req.params.id;
+
+  db.get(`SELECT * FROM users WHERE username = ?`, [name], (err, user) => {
+  if (err) {
+    console.error('Database error:', err.message);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+  if (!user) {
+    return res.status(404).json({ error: 'User not found'})
+  }
+  fullname = user.first_name + ' ' + user.last_name
+  badge = { name: fullname, email: user.email }
+  db.get(`SELECT * FROM profiles WHERE user_id = ?`, [user.id], (err, profile) => {
+    if (err) {
+    console.error('Database error:', err.message);
+    return res.status(500).json({ error: 'Internal server error' });
+  }
+    badge.avatar = profile.avatar ? profile.avatar : '/images/cow.jfif';
+    badge.location = profile.location ? profile.location : 'The Unknown';
+    badge.website = profile.website ? profile.website : 'https://noodles.com'
+    res.json(badge);
+  })
+})
+})
+//   const index = users.findIndex(user => user.name === name); 
+//   const user = users[index];
+//   // console.log(user)
+//   if (user) {
+//     res.json(user);
+//   } else {
+//     res.status(404).json({ error: 'User not found' });
+//   }
+// });
+
+
 
 // const serverOptions = {
 //   key: fs.readFileSync('key.pem'),

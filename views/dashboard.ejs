@@ -128,6 +128,15 @@
                     <input type="text" name="link" id="link-aff" placeholder="Website, social, git, etc" />
                     <button type="submit">Add</button>
                 </form>
+                  <form id="update-profile" class="upload-form hidden" enctype="multipart/form-data">
+                    <h3>Current role or location</h3>
+                    <input type="text" name="location" id="badge-location" placeholder="University, Company, Post-doc, Engineer, etc" />
+                    <h3>Website</h3>
+                    <input type="text" name="site" id="badge-site" placeholder="Personal site, github, IG, etc" />
+                    <h3>Profile Picture</h3>
+                    <input type="file" name="avatar" accept="application/jpg" />
+                    <button type="submit">Update</button>
+                </form>
             </div>
             <h2>Articles Published</h2>
             <ul class="upload-list" id="pdf-list">

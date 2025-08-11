@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title><%= pdf.title %></title>
   <link rel="stylesheet" href="/css/projects.css" />
+  <link rel="stylesheet" href="/components/userCard.css">
   <%- include('banner'); -%>
 </head>
 <body>
@@ -29,7 +30,7 @@
         </p>
       </div>
       <div class='uploaded-div'>
-        <h2>Uploaded by <%= pdf.uploaded_by %></h2>
+        <h2 data-name="<%= pdf.uploaded_by %>" class="user-profile">Uploaded by <%= pdf.uploaded_by %></h2>
         <button class="follow-btn" id="follow-btn" data-id="<%= pdf.uploaded_by %>"></button>
         <span id="follow-count" class="follow-count">👤 <%= user.subs %></span>
           <!-- <span id="follow-text"><%= pdf.is_followed ? 'Unfollow' : 'Follow' %></span> -->
@@ -47,9 +48,12 @@
           <textarea name="comment" placeholder="Leave a comment..." required></textarea>
           <button type="submit">Post</button>
         </form>
+        <div id="card-popup-container" style="position: absolute; display: none; z-index: 1000;"></div>
         <ul class="comment-list">
           <% comments.forEach(comment => { %>
-            <li><a href='/user/<%= comment.user %>'<strong><%= comment.user %>:</strong></a> <%= comment.text %>
+            
+            <li><a data-name="<%= comment.user %>" class="user-profile" href='/user/<%= comment.user %>'<strong><%= comment.user %>:</strong></a> <%= comment.text %>
+              
               <button data-user="<%= comment.user %>" class="subtle-report">🚨 Report</button></li>
           <% }) %>
         </ul>
@@ -74,5 +78,6 @@
   <%- include('message') -%>
   <script>const pdf = <%- JSON.stringify(pdf) %> </script>
   <script src="/js/projects.js"></script>
+  <script type="module" src="/js/hoverCard.js"></script>
 </body>
 </html>
