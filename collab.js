@@ -72,8 +72,8 @@ if (!fs.existsSync(targetDb)) {
   console.log('Spun to create users db')
 }
 
-let sourceDb = 'db.sqlite'; // path in your repo
-let targetDb = '/data/db.sqlite'; // path on the volume
+sourceDb = 'db.sqlite'; // path in your repo
+targetDb = '/data/db.sqlite'; // path on the volume
 
 // Copy on startup if it doesn't exist on the volume
 if (!fs.existsSync(targetDb)) {
