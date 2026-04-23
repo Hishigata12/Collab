@@ -63,15 +63,26 @@ app.set('view engine', 'ejs')
 app.engine('ejs', require('ejs').__express)
 app.use(routes)
 
-const sourceDb = 'users.db'; // path in your repo
-const targetDb = '/data/users.db'; // path on the volume
+let sourceDb = 'users.db'; // path in your repo
+let targetDb = '/data/users.db'; // path on the volume
 
 // Copy on startup if it doesn't exist on the volume
 if (!fs.existsSync(targetDb)) {
   fs.copyFileSync(sourceDb, targetDb);
+  console.log('Spun to create users db')
 }
 
-console.log('Spun to create new db')
+let sourceDb = 'db.sqlite'; // path in your repo
+let targetDb = '/data/db.sqlite'; // path on the volume
+
+// Copy on startup if it doesn't exist on the volume
+if (!fs.existsSync(targetDb)) {
+  fs.copyFileSync(sourceDb, targetDb);
+  console.log('Spun to create pdf db')
+}
+
+
+
 // const server = http.createServer(app)
 
 // Temporary use before getting NGINX running
