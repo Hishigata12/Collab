@@ -138,7 +138,7 @@ exports.searchGen2 = (req, res) => {
     // if (rows) results.push(rows)
     console.log({ items: rows, searchTerm }); // display ordered results
         db.all(`SELECT * FROM features`, [],  (err, features) => {
-        if (err) return res.send('fucked up bro')
+        if (err) return res.send('oopsy up bro')
             db.all(`SELECT * FROM news ORDER BY time DESC LIMIT 10`, (err, news) => {
         if (err) return res.send('no news bro')
       res.render('index', { items: rows, searchTerm, username, features, news })
