@@ -66,10 +66,10 @@ app.use(routes)
 // const server = http.createServer(app)
 
 // Temporary use before getting NGINX running
-const options = {
-  key: fs.readFileSync('cloudflare.key'),
-  cert: fs.readFileSync('cloudflare.crt'),
-};
+// const options = {
+//   key: fs.readFileSync('cloudflare.key'),
+//   cert: fs.readFileSync('cloudflare.crt'),
+// };
 
 // const server = https.createServer(options, app)
 
