@@ -71,9 +71,15 @@ const options = {
   cert: fs.readFileSync('cloudflare.crt'),
 };
 
-const server = https.createServer(options, app)
+// const server = https.createServer(options, app)
 
-const io = new Server(server)
+server2 = http.createServer(app)
+// // environment variable
+const port =  process.env.PORT || 3500//process.env.PORT || 3000 // use the chosen variable if available, if not use 3000
+server2.listen(port, () => console.log(`Listening on port ${port}`))
+
+
+const io = new Server(server2)
 
 io.use(sharedSession(sessionMiddleware, {
   autoSave: true,
@@ -274,15 +280,15 @@ app.post('/getmsg', requireAuth, (req, res) => {
 
 
 
-server.listen(443, () => {
-  console.log('HTTPS server running');
-})
+// server.listen(443, () => {
+//   console.log('HTTPS server running');
+// })
 
 
-server2 = http.createServer(app)
-// // environment variable
-const port = 3500//process.env.PORT || 3000 // use the chosen variable if available, if not use 3000
-server2.listen(port, () => console.log(`Listening on port ${port}`))
+// server2 = http.createServer(app)
+// // // environment variable
+// const port = 3500//process.env.PORT || 3000 // use the chosen variable if available, if not use 3000
+// server2.listen(port, () => console.log(`Listening on port ${port}`))
 
 
 // For setting up https later
