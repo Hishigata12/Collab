@@ -71,13 +71,13 @@ app.use(routes)
 //   cert: fs.readFileSync('cloudflare.crt'),
 // };
 
-// const server = https.createServer(options, app)
-
-server2 = http.createServer(app)
+const server2 = http.createServer(app)
 // // environment variable
-const port =  process.env.PORT || 3500//process.env.PORT || 3000 // use the chosen variable if available, if not use 3000
+const port = process.env.PORT || 3500 // use the chosen variable if available, if not use 3000
 server2.listen(port, () => console.log(`Listening on port ${port}`))
 
+
+// const server = https.createServer(options, app)
 
 const io = new Server(server2)
 
@@ -287,7 +287,7 @@ app.post('/getmsg', requireAuth, (req, res) => {
 
 // server2 = http.createServer(app)
 // // // environment variable
-// const port = 3500//process.env.PORT || 3000 // use the chosen variable if available, if not use 3000
+// const port = process.env.PORT || 3500 // use the chosen variable if available, if not use 3000
 // server2.listen(port, () => console.log(`Listening on port ${port}`))
 
 
