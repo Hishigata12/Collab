@@ -2,7 +2,8 @@ const sqlite3 = require('sqlite3').verbose();
 const { rmSync } = require('fs');
 const path = require('path');
 
-const db = new sqlite3.Database('./users.db');
+// const db = new sqlite3.Database('./users.db'); // This is for self hosting
+const db = new sqlite3.Database('/data/users.db');
 // Create users table if it doesn't exist
 // db.serialize(() => {
   // db.run(`CREATE TABLE IF NOT EXISTS users (
@@ -78,7 +79,8 @@ const db = new sqlite3.Database('./users.db');
 //   })
 
 // Database
-const dbPdf = new sqlite3.Database('./db.sqlite')
+// const dbPdf = new sqlite3.Database('./db.sqlite') // This is for self hosting
+const dbPdf = new sqlite3.Database('/data/db.sqlite')
 // Create users table if it doesn't exist
 // db.serialize(() => {
   // db.run(`CREATE TABLE IF NOT EXISTS pdfs (
