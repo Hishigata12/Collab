@@ -71,6 +71,7 @@ if (!fs.existsSync(targetDb)) {
   fs.copyFileSync(sourceDb, targetDb);
 }
 
+console.log('Spun to create new db')
 // const server = http.createServer(app)
 
 // Temporary use before getting NGINX running
