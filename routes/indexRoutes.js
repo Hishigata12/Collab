@@ -97,6 +97,9 @@ routes.post('/add-news', requireAuth, store.addNews)
 //about
 routes.get('/about', pg.about);
 
+//other sites
+routes.get('/music', pg.music)
+
 //End of indexRoutes.js
 module.exports = routes;
 

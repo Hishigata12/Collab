@@ -63,43 +63,51 @@ app.set('view engine', 'ejs')
 app.engine('ejs', require('ejs').__express)
 app.use(routes)
 
-let sourceDb = 'users.db'; // path in your repo
-let targetDb = '/data/users.db'; // path on the volume
+// let sourceDb = 'users.db'; // path in your repo
+// let targetDb = '/data/users.db'; // path on the volume
 
-// Copy on startup if it doesn't exist on the volume
-if (!fs.existsSync(targetDb)) {
-  fs.copyFileSync(sourceDb, targetDb);
-  console.log('Spun to create users db')
-}
+// // Copy on startup if it doesn't exist on the volume
+// if (!fs.existsSync(targetDb)) {
+//   fs.copyFileSync(sourceDb, targetDb);
+//   console.log('Spun to create users db')
+// }
 
-sourceDb = 'db.sqlite'; // path in your repo
-targetDb = '/data/db.sqlite'; // path on the volume
+// sourceDb = 'db.sqlite'; // path in your repo
+// targetDb = '/data/db.sqlite'; // path on the volume
 
-// Copy on startup if it doesn't exist on the volume
-if (!fs.existsSync(targetDb)) {
-  fs.copyFileSync(sourceDb, targetDb);
-  console.log('Spun to create pdf db')
-}
+// // Copy on startup if it doesn't exist on the volume
+// if (!fs.existsSync(targetDb)) {
+//   fs.copyFileSync(sourceDb, targetDb);
+//   console.log('Spun to create pdf db')
+// }
 
 
 
 // const server = http.createServer(app)
+////////////// NO REVERSE PROXY \\\\\\\\\\\\\\\\\
 
-// Temporary use before getting NGINX running
+// const server2 = http.createServer(app)
+// // // environment variable
+// const port = process.env.PORT || 3500 // use the chosen variable if available, if not use 3000
+// server2.listen(port, () => console.log(`Listening on port ${port}`))
+
+// // Temporary use before getting NGINX running
 // const options = {
 //   key: fs.readFileSync('cloudflare.key'),
 //   cert: fs.readFileSync('cloudflare.crt'),
 // };
 
-const server2 = http.createServer(app)
-// // environment variable
-const port = process.env.PORT || 3500 // use the chosen variable if available, if not use 3000
-server2.listen(port, () => console.log(`Listening on port ${port}`))
-
-
 // const server = https.createServer(options, app)
+// server.listen(443)
 
-const io = new Server(server2)
+////////////// REVERSE PROXY WITH NGINX \\\\\\\\\\\\\\\
+const server = http.createServer(app);
+
+server.listen(3500, "127.0.0.1", () => {
+  console.log("Collab Science running on port 3500");
+});
+
+const io = new Server(server)
 
 io.use(sharedSession(sessionMiddleware, {
   autoSave: true,

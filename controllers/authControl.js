@@ -21,7 +21,7 @@ BASE_URL = process.env.BASE_URL
 exports.guest =(req, res) => {
     const username = req.session.user ? req.session.user.username : 'Guest';
     admins = process.env.ADMINS
-    console.log('Testing index route')
+    // console.log('Testing index route')
     db.all(`SELECT * FROM features`, [],  (err, features) => {
         if (err) return res.send('fucked up bro')
             db.all(`SELECT * FROM news ORDER BY time DESC LIMIT 10`, (err, news) => {
